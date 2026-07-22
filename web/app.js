@@ -36,17 +36,17 @@ function paintWord(word, x, y, w, h, key) {
     ctx.fillStyle = color;
     
     const r = rng(wordHash);
-    const numStrokes = 2 + (r()*4 | 0);
+    const numStrokes = 3 + (r()*4 | 0); // More strokes for complexity
     
     for (let i=0; i<numStrokes; i++) {
         let x1 = x + r()*w, y1 = y - r()*h;
         let cx = x + r()*w, cy = y - r()*h;
         let x2 = x + r()*w, y2 = y - r()*h;
-        let maxThick = w*0.1 + r()*w*0.15;
+        let maxThick = w*0.035 + r()*w*0.04; // Thinner, elegant calligraphy
         drawBrush(x1, y1, cx, cy, x2, y2, maxThick);
     }
-    if (r() > 0.5) {
-        let rDot = w*0.1 + r()*w*0.15;
+    if (r() > 0.3) {
+        let rDot = w*0.06 + r()*w*0.08;
         ctx.beginPath(); ctx.arc(x + r()*w, y - r()*h, rDot, 0, Math.PI*2); ctx.fill();
     }
     return color;
@@ -73,24 +73,50 @@ function papyrusBorder(w, h, s, key) {
     ctx.fillStyle = 'rgb(234, 222, 203)';
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(pageX + bw, pageY + bw, pageW - 2*bw, pageH - 2*bw, 12) : ctx.rect(pageX+bw, pageY+bw, pageW-2*bw, pageH-2*bw); ctx.fill();
     
-    const drawFan = (x, y, rad, a1, a2) => { ctx.fillStyle = 'rgb(100, 140, 150)'; ctx.beginPath(); ctx.arc(x, y, rad, a1, a2); ctx.fill(); };
-    const drawPetal = (p) => { ctx.fillStyle = 'rgb(175, 55, 55)'; ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); ctx.lineTo(p[1][0], p[1][1]); ctx.lineTo(p[2][0], p[2][1]); ctx.fill(); };
+    const drawLotus = (x, y, scale, angle) => {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        
+        // Stem
+        ctx.strokeStyle = '#3d354f'; ctx.lineWidth = 1.5*scale;
+        ctx.beginPath(); ctx.moveTo(0, 10*scale); ctx.lineTo(0, 25*scale); ctx.stroke();
+        
+        // Red side petals
+        ctx.fillStyle = 'rgb(175, 55, 55)';
+        ctx.beginPath(); ctx.moveTo(-6*scale, 0); ctx.lineTo(-18*scale, -22*scale); ctx.lineTo(-10*scale, 0); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(6*scale, 0); ctx.lineTo(18*scale, -22*scale); ctx.lineTo(10*scale, 0); ctx.fill();
+        
+        // Red center petal
+        ctx.beginPath(); ctx.moveTo(-4*scale, 2*scale); ctx.lineTo(0, -25*scale); ctx.lineTo(4*scale, 2*scale); ctx.fill();
+
+        // Blue cup
+        ctx.fillStyle = 'rgb(100, 140, 150)';
+        ctx.beginPath(); 
+        ctx.moveTo(-16*scale, -8*scale);
+        ctx.bezierCurveTo(-16*scale, 18*scale, 16*scale, 18*scale, 16*scale, -8*scale);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Decorative spacing dot
+        ctx.fillStyle = 'rgb(60, 50, 40)';
+        ctx.beginPath(); ctx.arc(33*scale, 0, 3.5*scale, 0, Math.PI*2); ctx.fill();
+        
+        ctx.restore();
+    };
     
-    for (let bx = pageX + bw + 30*s; bx < pageX + pageW - bw - 30*s; bx += 60*s) {
-        drawFan(bx - 15*s, pageY + 15*s, 25*s, Math.PI, 0); 
-        drawFan(bx - 15*s, pageY + pageH - 40*s, 25*s, 0, Math.PI); 
-        drawPetal([[bx, pageY+15*s], [bx-20*s, pageY+25*s], [bx-10*s, pageY+35*s]]);
-        drawPetal([[bx, pageY+15*s], [bx+20*s, pageY+25*s], [bx+10*s, pageY+35*s]]);
-        drawPetal([[bx, pageY+pageH-15*s], [bx-20*s, pageY+pageH-25*s], [bx-10*s, pageY+pageH-35*s]]);
-        drawPetal([[bx, pageY+pageH-15*s], [bx+20*s, pageY+pageH-25*s], [bx+10*s, pageY+pageH-35*s]]);
+    const marginCenterTop = pageY + bw/2;
+    const marginCenterBottom = pageY + pageH - bw/2;
+    const marginCenterLeft = pageX + bw/2;
+    const marginCenterRight = pageX + pageW - bw/2;
+    
+    for (let bx = pageX + bw + 33*s; bx < pageX + pageW - bw - 30*s; bx += 66*s) {
+        drawLotus(bx, marginCenterTop, s, Math.PI); // Points downward (into page)
+        drawLotus(bx, marginCenterBottom, s, 0); // Points upward
     }
-    for (let by = pageY + bw + 30*s; by < pageY + pageH - bw - 30*s; by += 60*s) {
-        drawFan(pageX + 15*s, by - 15*s, 25*s, -Math.PI/2, Math.PI/2); 
-        drawFan(pageX + pageW - 40*s, by - 15*s, 25*s, Math.PI/2, -Math.PI/2); 
-        drawPetal([[pageX+15*s, by], [pageX+25*s, by-20*s], [pageX+35*s, by-10*s]]);
-        drawPetal([[pageX+15*s, by], [pageX+25*s, by+20*s], [pageX+35*s, by+10*s]]);
-        drawPetal([[pageX+pageW-15*s, by], [pageX+pageW-25*s, by-20*s], [pageX+pageW-35*s, by-10*s]]);
-        drawPetal([[pageX+pageW-15*s, by], [pageX+pageW-25*s, by+20*s], [pageX+pageW-35*s, by+10*s]]);
+    for (let by = pageY + bw + 33*s; by < pageY + pageH - bw - 30*s; by += 66*s) {
+        drawLotus(marginCenterLeft, by, s, Math.PI/2); // Points right
+        drawLotus(marginCenterRight, by, s, -Math.PI/2); // Points left
     }
     
     const innerM = bw + 8*s;
@@ -105,15 +131,15 @@ function draw() {
     const w = canvas.width, h = canvas.height, s = w/900;
     const { pageX, pageY, pageW, pageH, innerM } = papyrusBorder(w, h, s, key);
     
-    const left = pageX + innerM + 30*s;
-    const right = pageX + pageW - innerM - 30*s;
-    const top = pageY + innerM + 70*s;
+    const left = pageX + innerM + 40*s;
+    const right = pageX + pageW - innerM - 40*s;
+    const top = pageY + innerM + 120*s; // Pushed down to clear header
     
     const scriptKey = hash(key).toString(36).toUpperCase();
     const headerText = `THE  ${scriptKey}  FRAGMENT`;
     ctx.fillStyle = 'rgb(155, 40, 40)'; ctx.font = `bold ${22*s}px serif`;
     const headerW = ctx.measureText(headerText).width;
-    ctx.fillText(headerText, pageX + (pageW - headerW)/2, pageY + innerM + 45*s);
+    ctx.fillText(headerText, pageX + (pageW - headerW)/2, pageY + innerM + 50*s);
     
     const footerText = "Codex rules: Colors distinguish root concepts. Calligraphic weight indicates stress.";
     ctx.fillStyle = 'rgb(120, 100, 80)'; ctx.font = `italic ${14*s}px serif`;
@@ -134,7 +160,7 @@ function draw() {
         
         let lineWidth = 0;
         for (const token of words) {
-            if (token.word) lineWidth += (28*s + Math.min(6, token.word.length)*5*s) + 15*s;
+            if (token.word) lineWidth += (28*s + Math.min(6, token.word.length)*4*s) + 15*s;
             if (token.nonWord) {
                 for(let c of token.nonWord) {
                     if (c===' '||c==='\t') lineWidth+=12*s; else lineWidth+=10*s;
@@ -149,13 +175,13 @@ function draw() {
         
         for (const token of words) {
             if (token.word) {
-                const gw = 28*s + Math.min(6, token.word.length)*5*s;
+                const gw = 28*s + Math.min(6, token.word.length)*4*s; // Slightly narrower width bounding
                 const gh = 45*s;
                 
                 if (startX + gw <= right) {
                     if (firstWordInLine && lineNo === 0) {
                         ctx.fillStyle = 'rgba(230, 200, 130, 0.4)';
-                        ctx.beginPath(); ctx.ellipse(startX - 10*s + (gw+20*s)/2, yPos - gh + (gh+20*s)/2, (gw+20*s)/2, (gh+20*s)/2, 0, 0, Math.PI*2); ctx.fill();
+                        ctx.beginPath(); ctx.arc(startX + gw/2, yPos - gh/2, gw*0.85, 0, Math.PI*2); ctx.fill();
                     }
                     const color = paintWord(token.word, startX, yPos, gw, gh, key);
                     
@@ -196,5 +222,4 @@ document.querySelector('#transmute').addEventListener('click',draw);
 document.querySelector('#new-seed').addEventListener('click',()=>{seed.value=Math.random().toString(36).slice(2,10);draw()});
 document.querySelector('#download').addEventListener('click',()=>{const a=document.createElement('a');a.download='asemic-codex.png';a.href=canvas.toDataURL('image/png');a.click();});
 
-// Run once on load
 if (document.fonts) { document.fonts.ready.then(draw); } else { setTimeout(draw, 200); }
