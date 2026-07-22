@@ -1,0 +1,20 @@
+const canvas = document.querySelector('#codex');
+const ctx = canvas.getContext('2d');
+const poem = document.querySelector('#poem');
+const seed = document.querySelector('#seed');
+const translation = document.querySelector('#translation');
+const grammar = document.querySelector('#grammar');
+let rand, glyphs;
+
+function hash(text) { let h=2166136261; for (const c of text) { h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }
+function rng(value) { let a=value>>>0; return () => { a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296; }; }
+function setup() { rand=rng(hash(seed.value || 'unnamed')); glyphs={}; 'abcdefghijklmnopqrstuvwxyz'.split('').forEach(c=>glyphs[c]=Array.from({length:2+(rand()*3|0)},()=>[rand(),rand(),rand(),rand(),rand(),rand()])); }
+function fakeText(str) { const rune=['⟆','ʚ','⋔','ꝏ','ᚫ','⸸','ꜥ','⨳','᛫','❦']; let i=0; return str.toLowerCase().replace(/[a-z]/g,()=>rune[(hash(seed.value+i++)+i*7)%rune.length]).replace(/\s+/g,' '); }
+function lineWrap(text,max) { const words=text.split(/\s+/),lines=[];let line=[];for(const word of words){if((line.join(' ').length+word.length)>max){lines.push(line.join(' '));line=[];}line.push(word)}if(line.length)lines.push(line.join(' '));return lines; }
+function glyph(c,x,y,s) { const paths=glyphs[c]; if(!paths)return 12*s; ctx.save();ctx.strokeStyle='#293735';ctx.fillStyle='#293735';ctx.lineWidth=2.3*s;ctx.lineCap='round';ctx.lineJoin='round'; for(const p of paths){ctx.beginPath();ctx.moveTo(x+p[0]*22*s,y-p[1]*34*s);ctx.quadraticCurveTo(x+p[2]*23*s,y-p[3]*35*s,x+p[4]*25*s,y-p[5]*34*s);ctx.stroke();} const r=rng(hash(c+seed.value));if(r()>.42){ctx.beginPath();ctx.arc(x+(r()*18+2)*s,y-(r()*25+17)*s,2.1*s,0,Math.PI*2);ctx.fill()}ctx.restore();return 29*s; }
+function paper() { const w=canvas.width,h=canvas.height; ctx.fillStyle='#dfcf9c';ctx.fillRect(0,0,w,h);const noise=rng(hash(seed.value+'paper'));for(let i=0;i<8500;i++){ctx.fillStyle=`rgba(90,65,26,${.015+noise()*.045})`;ctx.fillRect(noise()*w,noise()*h,1+noise()*3,1+noise()*3)}ctx.strokeStyle='#865b34';ctx.lineWidth=3;ctx.strokeRect(25,25,w-50,h-50);ctx.strokeStyle='#b98c43';ctx.lineWidth=2;ctx.strokeRect(42,42,w-84,h-84); }
+function draw() { setup(); const w=canvas.width,h=canvas.height,s=w/1200; paper();ctx.fillStyle='#722f32';ctx.font=`bold ${31*s}px Libre Baskerville`;ctx.fillText(`THE ${hash(seed.value).toString(36).toUpperCase()} FRAGMENT`,130*s,120*s);ctx.strokeStyle='#b48c3f';ctx.lineWidth=2*s;ctx.beginPath();ctx.moveTo(130*s,142*s);ctx.lineTo(1060*s,142*s);ctx.stroke(); const lines=lineWrap(poem.value,36);let y=265*s; lines.slice(0,14).forEach((line,li)=>{let x=160*s; for(let i=0;i<line.length;i++){const c=line[i].toLowerCase();if(/[a-z]/.test(c)){if(li===0&&i===0){ctx.fillStyle='#c59a3e';ctx.fillRect(x-10*s,y-48*s,42*s,55*s);}x+=glyph(c,x,y,li===0&&i===0?1.35*s:s)}else if(c===' ')x+=14*s;else{x+=13*s;ctx.fillStyle='#7a3432';ctx.beginPath();ctx.arc(x,y-10*s,3*s,0,7);ctx.fill();}}y+=62*s;}); ctx.strokeStyle='#793534';ctx.fillStyle='#793534'; for(let yy=250*s;yy<h-115*s;yy+=84*s){ctx.beginPath();ctx.arc(76*s,yy,18*s,.2,5.7);ctx.stroke();ctx.beginPath();ctx.arc(87*s,yy+12*s,3*s,0,7);ctx.fill();}ctx.fillStyle='#38443d';ctx.font=`italic ${15*s}px Libre Baskerville`;ctx.fillText('Breath reverses the next word · Sacred pairs bind into one hand · No glossary survives.',130*s,h-74*s);
+ translation.textContent=fakeText(poem.value); grammar.textContent=`Grammar of the ${hash(seed.value).toString(36).toUpperCase()} hand: verbs take a hooked ascender; pauses become votive marks; th, sh, and ch are sacred ligatures.`;
+}
+document.querySelector('#transmute').addEventListener('click',draw); document.querySelector('#new-seed').addEventListener('click',()=>{seed.value=Math.random().toString(36).slice(2,10);draw()});document.querySelector('#download').addEventListener('click',()=>{const a=document.createElement('a');a.download='asemic-codex.png';a.href=canvas.toDataURL('image/png');a.click();});
+draw();

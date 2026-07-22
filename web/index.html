@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#141b1b">
+  <title>Asemic Codex Generator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="#">ASEMIC <span>CODEX</span></a>
+    <p>THE ARTIFACT PRESS · VOL. 001</p>
+    <button class="quiet" id="new-seed">New hand</button>
+  </header>
+  <main>
+    <section class="control-panel">
+      <div class="eyebrow">01 / THE SOURCE TEXT</div>
+      <h1>Make a poem<br>unreadable.</h1>
+      <p class="intro">A fictive script engine for poems that deserve to become artifacts. Every seed makes a new alphabet, grammar, and manuscript hand.</p>
+      <label for="poem">YOUR POEM</label>
+      <textarea id="poem" spellcheck="false">In the archive of sleep
+I found a language made of moth wings.
+Each word opened once
+and would not translate.</textarea>
+      <div class="seed-row">
+        <div><label for="seed">MANUSCRIPT SEED</label><input id="seed" value="seraph-1313" maxlength="28"></div>
+        <button id="transmute">Transmute</button>
+      </div>
+      <div class="reading">
+        <div class="eyebrow">02 / A FALSE READING</div>
+        <p id="translation" aria-live="polite"></p>
+      </div>
+      <p class="grammar" id="grammar"></p>
+    </section>
+    <section class="artifact">
+      <div class="paper-frame">
+        <canvas id="codex" width="1200" height="1500" aria-label="Generated illuminated codex page"></canvas>
+      </div>
+      <div class="artifact-actions">
+        <span>ONE PAGE · NO TRANSLATION</span>
+        <button class="quiet" id="download">Export PNG</button>
+      </div>
+    </section>
+  </main>
+  <footer>Written in no known hand. Rendered entirely in your browser.</footer>
+  <script src="app.js"></script>
+</body>
+</html>
