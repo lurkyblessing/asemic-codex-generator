@@ -162,21 +162,21 @@ public final class AsemicCodexApp {
             Random r = new Random(seed);
             g.setColor(color);
             float penAngle = -(float)Math.PI/8f + r.nextFloat() * (float)Math.PI/4f;
-            int numComponents = 2 + r.nextInt(3);
+            int numComponents = 1 + r.nextInt(2);
             
             for (int i = 0; i < numComponents; i++) {
-                float cx = x + w/2f;
+                float cx = x + w * (0.3f + 0.4f * i / Math.max(1, numComponents - 1));
                 float cy = y - h/2f;
-                float startX = cx + (r.nextFloat()-0.5f)*w*0.9f;
-                float startY = cy + (r.nextFloat()-0.5f)*h*0.9f;
-                float cp1x = cx + (r.nextFloat()-0.5f)*w*1.5f;
-                float cp1y = cy + (r.nextFloat()-0.5f)*h*1.5f;
-                float cp2x = cx + (r.nextFloat()-0.5f)*w*1.5f;
-                float cp2y = cy + (r.nextFloat()-0.5f)*h*1.5f;
-                float endX = cx + (r.nextFloat()-0.5f)*w*0.9f;
-                float endY = cy + (r.nextFloat()-0.5f)*h*0.9f;
+                float startX = cx + (r.nextFloat()-0.5f)*w*0.5f;
+                float startY = cy + (r.nextFloat()-0.5f)*h*0.8f;
+                float cp1x = cx + (r.nextFloat()-0.5f)*w*0.8f;
+                float cp1y = cy + (r.nextFloat()-0.5f)*h*1.2f;
+                float cp2x = cx + (r.nextFloat()-0.5f)*w*0.8f;
+                float cp2y = cy + (r.nextFloat()-0.5f)*h*1.2f;
+                float endX = cx + (r.nextFloat()-0.5f)*w*0.5f;
+                float endY = cy + (r.nextFloat()-0.5f)*h*0.8f;
                 
-                float maxThick = w * 0.15f + r.nextFloat() * w * 0.15f;
+                float maxThick = w * 0.06f + r.nextFloat() * w * 0.06f;
                 int pressureType = r.nextInt(4);
                 
                 drawCursiveBrush(g, startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, maxThick, penAngle, pressureType);
@@ -187,7 +187,7 @@ public final class AsemicCodexApp {
                 float type = r.nextFloat();
                 float dx = x + w/2f + (r.nextFloat()-0.5f)*w*0.8f;
                 float dy = y - h/2f + (r.nextFloat()-0.5f)*h*0.8f;
-                float decoThick = w * 0.12f + r.nextFloat() * w * 0.1f;
+                float decoThick = w * 0.06f + r.nextFloat() * w * 0.05f;
                 
                 if (type < 0.3f) {
                     g.fill(new Ellipse2D.Float(dx - decoThick/2f, dy - decoThick/2f, decoThick, decoThick));
@@ -206,7 +206,7 @@ public final class AsemicCodexApp {
         }
         
         private void drawCursiveBrush(Graphics2D g, float x1, float y1, float cp1x, float cp1y, float cp2x, float cp2y, float x2, float y2, float maxThick, float penAngle, int pressureType) {
-            int steps = 80;
+            int steps = 250;
             float penWidth = maxThick;
             float penHeight = maxThick * 0.15f;
             
@@ -348,10 +348,6 @@ public final class AsemicCodexApp {
                     if (x + gw > (measureOnly ? right - left : right)) break;
                     
                     if (!measureOnly) {
-                        if (firstWord && initial) {
-                            g.setColor(new Color(230, 200, 130, 80));
-                            g.fill(new Ellipse2D.Float(x - 10*scale, y - gh, gw + 20*scale, gh + 20*scale));
-                        }
                         wg.paint(g, x, y, gw, gh);
                     }
                     x += gw + 12 * scale;

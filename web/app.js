@@ -19,7 +19,7 @@ function hash(text) { let h=2166136261; for (const c of text) { h^=c.charCodeAt(
 function rng(value) { let a=value>>>0; return () => { a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296; }; }
 
 function drawCursiveBrush(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, maxThick, penAngle, pressureType) {
-    const steps = 80;
+    const steps = 250;
     const penWidth = maxThick;
     const penHeight = maxThick * 0.15;
     
@@ -56,17 +56,17 @@ function paintWord(word, x, y, w, h, key) {
     const r = rng(wordHash);
     
     const penAngle = -Math.PI/8 + r() * Math.PI/4;
-    const numComponents = 2 + (r() * 3 | 0);
+    const numComponents = 1 + (r() * 2 | 0);
     
     for (let i=0; i<numComponents; i++) {
-        let cx = x + w/2;
+        let cx = x + w * (0.3 + 0.4 * i / Math.max(1, numComponents - 1));
         let cy = y - h/2;
-        let startX = cx + (r()-0.5)*w*0.9; let startY = cy + (r()-0.5)*h*0.9;
-        let cp1x = cx + (r()-0.5)*w*1.5; let cp1y = cy + (r()-0.5)*h*1.5;
-        let cp2x = cx + (r()-0.5)*w*1.5; let cp2y = cy + (r()-0.5)*h*1.5;
-        let endX = cx + (r()-0.5)*w*0.9; let endY = cy + (r()-0.5)*h*0.9;
+        let startX = cx + (r()-0.5)*w*0.5; let startY = cy + (r()-0.5)*h*0.8;
+        let cp1x = cx + (r()-0.5)*w*0.8; let cp1y = cy + (r()-0.5)*h*1.2;
+        let cp2x = cx + (r()-0.5)*w*0.8; let cp2y = cy + (r()-0.5)*h*1.2;
+        let endX = cx + (r()-0.5)*w*0.5; let endY = cy + (r()-0.5)*h*0.8;
         
-        let maxThick = w*0.15 + r()*w*0.15;
+        let maxThick = w*0.06 + r()*w*0.06;
         let pressureType = r() * 4 | 0;
         drawCursiveBrush(startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, maxThick, penAngle, pressureType);
     }
@@ -76,7 +76,7 @@ function paintWord(word, x, y, w, h, key) {
         let type = r();
         let dx = x + w/2 + (r()-0.5)*w*0.8;
         let dy = y - h/2 + (r()-0.5)*h*0.8;
-        let decoThick = w*0.12 + r()*w*0.1;
+        let decoThick = w*0.06 + r()*w*0.05;
         
         if (type < 0.3) {
             ctx.beginPath();
@@ -225,10 +225,6 @@ function draw() {
                 const gh = 85*s;
                 
                 if (startX + gw <= right) {
-                    if (firstWordInLine && lineNo === 0) {
-                        ctx.fillStyle = 'rgba(230, 200, 130, 0.4)';
-                        ctx.beginPath(); ctx.arc(startX + gw/2, yPos - gh/2, gw*0.85, 0, Math.PI*2); ctx.fill();
-                    }
                     const color = paintWord(token.word, startX, yPos, gw, gh, key);
                     
                     const span = document.createElement('span');
