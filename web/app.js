@@ -66,7 +66,7 @@ function paintWord(word, x, y, w, h, key) {
         let cp2x = cx + (r()-0.5)*w*0.8; let cp2y = cy + (r()-0.5)*h*1.2;
         let endX = cx + (r()-0.5)*w*0.5; let endY = cy + (r()-0.5)*h*0.8;
         
-        let maxThick = w*0.06 + r()*w*0.06;
+        let maxThick = w*0.09 + r()*w*0.04;
         let pressureType = r() * 4 | 0;
         drawCursiveBrush(startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, maxThick, penAngle, pressureType);
     }
@@ -76,7 +76,7 @@ function paintWord(word, x, y, w, h, key) {
         let type = r();
         let dx = x + w/2 + (r()-0.5)*w*0.8;
         let dy = y - h/2 + (r()-0.5)*h*0.8;
-        let decoThick = w*0.06 + r()*w*0.05;
+        let decoThick = w*0.08 + r()*w*0.05;
         
         if (type < 0.3) {
             ctx.beginPath();
