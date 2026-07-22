@@ -223,3 +223,14 @@ document.querySelector('#new-seed').addEventListener('click',()=>{seed.value=Mat
 document.querySelector('#download').addEventListener('click',()=>{const a=document.createElement('a');a.download='asemic-codex.png';a.href=canvas.toDataURL('image/png');a.click();});
 
 if (document.fonts) { document.fonts.ready.then(draw); } else { setTimeout(draw, 200); }
+
+const titleText = document.querySelector('#title-text');
+if (titleText) {
+    titleText.addEventListener('mousemove', (e) => {
+        const rect = titleText.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        titleText.style.setProperty('--x', `${x}px`);
+        titleText.style.setProperty('--y', `${y}px`);
+    });
+}
