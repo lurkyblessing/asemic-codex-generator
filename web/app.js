@@ -56,15 +56,16 @@ function paintWord(word, x, y, w, h, key) {
     const r = rng(wordHash);
     
     const penAngle = -Math.PI/8 + r() * Math.PI/4;
-    const numComponents = 1 + (r() * 2 | 0);
+    const numComponents = 3 + (r() * 3 | 0);
+    
+    let cx = x + w/2;
+    let cy = y - h/2;
     
     for (let i=0; i<numComponents; i++) {
-        let cx = x + w * (0.3 + 0.4 * i / Math.max(1, numComponents - 1));
-        let cy = y - h/2;
-        let startX = cx + (r()-0.5)*w*0.5; let startY = cy + (r()-0.5)*h*0.8;
-        let cp1x = cx + (r()-0.5)*w*0.8; let cp1y = cy + (r()-0.5)*h*1.2;
-        let cp2x = cx + (r()-0.5)*w*0.8; let cp2y = cy + (r()-0.5)*h*1.2;
-        let endX = cx + (r()-0.5)*w*0.5; let endY = cy + (r()-0.5)*h*0.8;
+        let startX = cx + (r()-0.5)*w*0.8; let startY = cy + (r()-0.5)*h*0.8;
+        let cp1x = cx + (r()-0.5)*w*1.0; let cp1y = cy + (r()-0.5)*h*1.0;
+        let cp2x = cx + (r()-0.5)*w*1.0; let cp2y = cy + (r()-0.5)*h*1.0;
+        let endX = cx + (r()-0.5)*w*0.8; let endY = cy + (r()-0.5)*h*0.8;
         
         let maxThick = w*0.09 + r()*w*0.04;
         let pressureType = r() * 4 | 0;
@@ -179,7 +180,7 @@ function draw() {
     
     const left = pageX + innerM + 40*s;
     const right = pageX + pageW - innerM - 40*s;
-    const top = pageY + innerM + 120*s; // Pushed down to clear header
+    const top = pageY + innerM + 260*s; // Pushed down to clear massive header
     
     const scriptKey = hash(key).toString(36).toUpperCase();
     const headerText = `THE  ${scriptKey}  FRAGMENT`;

@@ -162,18 +162,19 @@ public final class AsemicCodexApp {
             Random r = new Random(seed);
             g.setColor(color);
             float penAngle = -(float)Math.PI/8f + r.nextFloat() * (float)Math.PI/4f;
-            int numComponents = 1 + r.nextInt(2);
+            int numComponents = 3 + r.nextInt(3);
+            
+            float cx = x + w/2f;
+            float cy = y - h/2f;
             
             for (int i = 0; i < numComponents; i++) {
-                float cx = x + w * (0.3f + 0.4f * i / Math.max(1, numComponents - 1));
-                float cy = y - h/2f;
-                float startX = cx + (r.nextFloat()-0.5f)*w*0.5f;
+                float startX = cx + (r.nextFloat()-0.5f)*w*0.8f;
                 float startY = cy + (r.nextFloat()-0.5f)*h*0.8f;
-                float cp1x = cx + (r.nextFloat()-0.5f)*w*0.8f;
-                float cp1y = cy + (r.nextFloat()-0.5f)*h*1.2f;
-                float cp2x = cx + (r.nextFloat()-0.5f)*w*0.8f;
-                float cp2y = cy + (r.nextFloat()-0.5f)*h*1.2f;
-                float endX = cx + (r.nextFloat()-0.5f)*w*0.5f;
+                float cp1x = cx + (r.nextFloat()-0.5f)*w*1.0f;
+                float cp1y = cy + (r.nextFloat()-0.5f)*h*1.0f;
+                float cp2x = cx + (r.nextFloat()-0.5f)*w*1.0f;
+                float cp2y = cy + (r.nextFloat()-0.5f)*h*1.0f;
+                float endX = cx + (r.nextFloat()-0.5f)*w*0.8f;
                 float endY = cy + (r.nextFloat()-0.5f)*h*0.8f;
                 
                 float maxThick = w * 0.09f + r.nextFloat() * w * 0.04f;
@@ -301,11 +302,10 @@ public final class AsemicCodexApp {
             g.drawRoundRect(pageRect.x + innerM, pageRect.y + innerM, pageRect.width - 2*innerM, pageRect.height - 2*innerM, 20, 20);
             
             // Writing area layout (centered within inner border)
-            int left = pageRect.x + innerM + (int)(30*s);
-            int right = pageRect.x + pageRect.width - innerM - (int)(30*s);
-            int top = pageRect.y + innerM + (int)(70*s);
-            
-            // Rubric / Header (center aligned)
+            int left = pageRect.x + innerM + (int)(80*s);
+            int right = pageRect.x + pageRect.width - innerM - (int)(80*s);
+            int top = pageRect.y + innerM + (int)(200*s);
+            int bottom = pageRect.y + pageRect.height - innerM - (int)(100*s);
             String headerText = "THE  " + Long.toUnsignedString(current.key, 36).toUpperCase(Locale.ROOT) + "  FRAGMENT";
             g.setColor(new Color(155, 40, 40)); 
             g.setFont(new Font(Font.SERIF, Font.BOLD, (int)(22*s))); 
