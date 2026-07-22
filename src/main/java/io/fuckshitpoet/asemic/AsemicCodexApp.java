@@ -200,57 +200,96 @@ public final class AsemicCodexApp {
         private void draw(Graphics2D g, int w, int h) {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             Random r = new Random(current.key ^ 0x5c0d3L);
-            g.setColor(new Color(40, 45, 45)); g.fillRect(0, 0, w, h); // Desk background
+            g.setColor(new Color(30, 25, 22)); g.fillRect(0, 0, w, h); // Desk background
             
             int m = Math.max(22, w / 18); Rectangle pageRect = new Rectangle(m, m/2, w-2*m, h-m);
-            // Fine art paper background
-            g.setColor(new Color(248, 245, 238)); g.fillRoundRect(pageRect.x, pageRect.y, pageRect.width, pageRect.height, 4, 4);
+            // Warm beige/papyrus background
+            g.setColor(new Color(234, 222, 203)); 
+            g.fillRoundRect(pageRect.x, pageRect.y, pageRect.width, pageRect.height, 12, 12);
             
-            // Subtle paper grain
+            // Subtle papyrus grain
             for (int i = 0; i < 4000; i++) {
-                int a = 2 + r.nextInt(6);
-                g.setColor(new Color(150, 140, 130, a));
+                int a = 3 + r.nextInt(6);
+                g.setColor(new Color(160, 140, 120, a));
                 int px = pageRect.x + r.nextInt(pageRect.width);
                 int py = pageRect.y + r.nextInt(pageRect.height);
                 g.fillRect(px, py, 1 + r.nextInt(2), 1 + r.nextInt(2));
             }
             
-            // Soft border frame
-            g.setColor(new Color(220, 210, 200)); 
-            g.setStroke(new BasicStroke(Math.max(1, w/500f))); 
-            g.drawRect(pageRect.x + 15, pageRect.y + 15, pageRect.width - 30, pageRect.height - 30);
-            
             float s = w / 900f; 
-            int left = pageRect.x + (int)(85*s);
-            int right = pageRect.x + pageRect.width - (int)(75*s);
-            int top = pageRect.y + (int)(160*s);
             
-            // Rubric / Header
-            g.setColor(new Color(180, 40, 50)); 
-            g.setFont(new Font(Font.SERIF, Font.BOLD, (int)(24*s))); 
-            g.drawString("THE  " + Long.toUnsignedString(current.key, 36).toUpperCase(Locale.ROOT) + "  FRAGMENT", left, pageRect.y + (int)(75*s));
+            // Decorative Egyptian-style floral border
+            int bw = (int)(50 * s); // border width
+            g.setColor(new Color(215, 205, 185)); // slightly darker margin base
+            g.fillRoundRect(pageRect.x + 8, pageRect.y + 8, pageRect.width - 16, pageRect.height - 16, 8, 8);
+            g.setColor(new Color(234, 222, 203)); // inner paper
+            g.fillRoundRect(pageRect.x + bw, pageRect.y + bw, pageRect.width - 2*bw, pageRect.height - 2*bw, 12, 12);
             
-            // Elegant thin divider
-            g.setColor(new Color(200, 180, 150)); 
-            g.setStroke(new BasicStroke(1.5f*s)); 
-            g.drawLine(left, pageRect.y + (int)(90*s), right, pageRect.y + (int)(90*s));
+            // Border motifs
+            for (int bx = pageRect.x + bw + (int)(30*s); bx < pageRect.x + pageRect.width - bw - (int)(30*s); bx += (int)(60*s)) {
+                g.setColor(new Color(100, 140, 150)); 
+                g.fillArc(bx - (int)(15*s), pageRect.y + (int)(15*s), (int)(30*s), (int)(25*s), 180, 180);
+                g.fillArc(bx - (int)(15*s), pageRect.y + pageRect.height - (int)(40*s), (int)(30*s), (int)(25*s), 0, 180);
+                
+                g.setColor(new Color(175, 55, 55)); 
+                g.fillPolygon(new int[]{bx, bx-(int)(20*s), bx-(int)(10*s)}, new int[]{pageRect.y+(int)(15*s), pageRect.y+(int)(25*s), pageRect.y+(int)(35*s)}, 3);
+                g.fillPolygon(new int[]{bx, bx+(int)(20*s), bx+(int)(10*s)}, new int[]{pageRect.y+(int)(15*s), pageRect.y+(int)(25*s), pageRect.y+(int)(35*s)}, 3);
+                g.fillPolygon(new int[]{bx, bx-(int)(20*s), bx-(int)(10*s)}, new int[]{pageRect.y+pageRect.height-(int)(15*s), pageRect.y+pageRect.height-(int)(25*s), pageRect.y+pageRect.height-(int)(35*s)}, 3);
+                g.fillPolygon(new int[]{bx, bx+(int)(20*s), bx+(int)(10*s)}, new int[]{pageRect.y+pageRect.height-(int)(15*s), pageRect.y+pageRect.height-(int)(25*s), pageRect.y+pageRect.height-(int)(35*s)}, 3);
+            }
+            for (int by = pageRect.y + bw + (int)(30*s); by < pageRect.y + pageRect.height - bw - (int)(30*s); by += (int)(60*s)) {
+                g.setColor(new Color(100, 140, 150)); 
+                g.fillArc(pageRect.x + (int)(15*s), by - (int)(15*s), (int)(25*s), (int)(30*s), -90, 180);
+                g.fillArc(pageRect.x + pageRect.width - (int)(40*s), by - (int)(15*s), (int)(25*s), (int)(30*s), 90, 180);
+                
+                g.setColor(new Color(175, 55, 55)); 
+                g.fillPolygon(new int[]{pageRect.x+(int)(15*s), pageRect.x+(int)(25*s), pageRect.x+(int)(35*s)}, new int[]{by, by-(int)(20*s), by-(int)(10*s)}, 3);
+                g.fillPolygon(new int[]{pageRect.x+(int)(15*s), pageRect.x+(int)(25*s), pageRect.x+(int)(35*s)}, new int[]{by, by+(int)(20*s), by+(int)(10*s)}, 3);
+                g.fillPolygon(new int[]{pageRect.x+pageRect.width-(int)(15*s), pageRect.x+pageRect.width-(int)(25*s), pageRect.x+pageRect.width-(int)(35*s)}, new int[]{by, by-(int)(20*s), by-(int)(10*s)}, 3);
+                g.fillPolygon(new int[]{pageRect.x+pageRect.width-(int)(15*s), pageRect.x+pageRect.width-(int)(25*s), pageRect.x+pageRect.width-(int)(35*s)}, new int[]{by, by+(int)(20*s), by+(int)(10*s)}, 3);
+            }
+            
+            // Inner thin border
+            int innerM = bw + (int)(8*s);
+            g.setColor(new Color(150, 120, 90)); 
+            g.setStroke(new BasicStroke(2.5f*s));
+            g.drawRoundRect(pageRect.x + innerM, pageRect.y + innerM, pageRect.width - 2*innerM, pageRect.height - 2*innerM, 20, 20);
+            
+            // Writing area layout (centered within inner border)
+            int left = pageRect.x + innerM + (int)(30*s);
+            int right = pageRect.x + pageRect.width - innerM - (int)(30*s);
+            int top = pageRect.y + innerM + (int)(70*s);
+            
+            // Rubric / Header (center aligned)
+            String headerText = "THE  " + Long.toUnsignedString(current.key, 36).toUpperCase(Locale.ROOT) + "  FRAGMENT";
+            g.setColor(new Color(155, 40, 40)); 
+            g.setFont(new Font(Font.SERIF, Font.BOLD, (int)(22*s))); 
+            FontMetrics fm = g.getFontMetrics();
+            int headerX = pageRect.x + (pageRect.width - fm.stringWidth(headerText)) / 2;
+            g.drawString(headerText, headerX, pageRect.y + innerM + (int)(45*s));
             
             // Lines
             List<String> lines = Arrays.asList(source.split("\\R")); 
             int lineNo = 0;
             for (String line : lines) { 
-                paintLine(g, line, left, top + lineNo * (int)(65*s), right, s, lineNo == 0); 
+                float lineWidth = paintLine(g, line, left, top + lineNo * (int)(75*s), right, s, lineNo == 0, true);
+                float offset = Math.max(0, (right - left - lineWidth) / 2);
+                paintLine(g, line, left + (int)offset, top + lineNo * (int)(75*s), right, s, lineNo == 0, false); 
                 lineNo++; 
             }
             
             // Footer text
-            g.setColor(new Color(120, 110, 100)); 
-            g.setFont(new Font(Font.SERIF, Font.ITALIC, (int)(13*s))); 
-            g.drawString(current.grammar(), left, pageRect.y + pageRect.height - (int)(38*s));
+            String footer = current.grammar();
+            g.setColor(new Color(120, 100, 80)); 
+            g.setFont(new Font(Font.SERIF, Font.ITALIC, (int)(14*s))); 
+            fm = g.getFontMetrics();
+            int footerX = pageRect.x + (pageRect.width - fm.stringWidth(footer)) / 2;
+            g.drawString(footer, footerX, pageRect.y + pageRect.height - innerM - (int)(25*s));
         }
         
-        private void paintLine(Graphics2D g, String line, int left, int y, int right, float scale, boolean initial) {
-            float x = left;
+        private float paintLine(Graphics2D g, String line, int left, int y, int right, float scale, boolean initial, boolean measureOnly) {
+            float x = measureOnly ? 0 : left;
+            float startX = x;
             Matcher m = Pattern.compile("([a-zA-Z']+)|([^a-zA-Z']+)").matcher(line);
             boolean firstWord = true;
             
@@ -258,18 +297,18 @@ public final class AsemicCodexApp {
                 if (m.group(1) != null) {
                     String word = m.group(1);
                     WordGlyph wg = current.wordGlyph(word);
-                    float gw = 28 * scale + Math.min(6, word.length()) * 5 * scale; // Width scales slightly with word length
+                    float gw = 28 * scale + Math.min(6, word.length()) * 5 * scale;
                     float gh = 45 * scale;
                     
-                    if (x + gw > right) break; // Clip if too long
+                    if (x + gw > (measureOnly ? right - left : right)) break;
                     
-                    if (firstWord && initial) {
-                        // Highlight first letter/word as illuminated initial
-                        g.setColor(new Color(230, 200, 130, 80)); // Soft gold halo
-                        g.fill(new Ellipse2D.Float(x - 10*scale, y - gh, gw + 20*scale, gh + 20*scale));
+                    if (!measureOnly) {
+                        if (firstWord && initial) {
+                            g.setColor(new Color(230, 200, 130, 80));
+                            g.fill(new Ellipse2D.Float(x - 10*scale, y - gh, gw + 20*scale, gh + 20*scale));
+                        }
+                        wg.paint(g, x, y, gw, gh);
                     }
-                    
-                    wg.paint(g, x, y, gw, gh);
                     x += gw + 15 * scale;
                     firstWord = false;
                 }
@@ -278,13 +317,16 @@ public final class AsemicCodexApp {
                         if (c == ' ' || c == '\t') x += 12 * scale;
                         else if (c == '\n') {} 
                         else {
-                            g.setColor(new Color(180, 50, 50, 180));
-                            g.fill(new Ellipse2D.Float(x, y - 10 * scale, 5 * scale, 5 * scale));
+                            if (!measureOnly) {
+                                g.setColor(new Color(180, 50, 50, 180));
+                                g.fill(new Ellipse2D.Float(x, y - 10 * scale, 5 * scale, 5 * scale));
+                            }
                             x += 10 * scale;
                         }
                     }
                 }
             }
+            return x - startX;
         }
     }
 }
