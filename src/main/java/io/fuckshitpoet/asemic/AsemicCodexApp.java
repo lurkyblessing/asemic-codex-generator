@@ -165,16 +165,16 @@ public final class AsemicCodexApp {
             int numComponents = 1 + r.nextInt(2);
             
             for (int i = 0; i < numComponents; i++) {
-                float cx = x + r.nextFloat() * w;
-                float cy = y - r.nextFloat() * h;
-                float startX = cx + (r.nextFloat()-0.5f)*w;
-                float startY = cy + (r.nextFloat()-0.5f)*h;
-                float cp1x = cx + (r.nextFloat()-0.5f)*w*2.5f;
-                float cp1y = cy + (r.nextFloat()-0.5f)*h*2.5f;
-                float cp2x = cx + (r.nextFloat()-0.5f)*w*2.5f;
-                float cp2y = cy + (r.nextFloat()-0.5f)*h*2.5f;
-                float endX = cx + (r.nextFloat()-0.5f)*w;
-                float endY = cy + (r.nextFloat()-0.5f)*h;
+                float cx = x + (0.2f + r.nextFloat()*0.6f) * w;
+                float cy = y - (0.2f + r.nextFloat()*0.6f) * h;
+                float startX = cx + (r.nextFloat()-0.5f)*w*0.8f;
+                float startY = cy + (r.nextFloat()-0.5f)*h*0.8f;
+                float cp1x = cx + (r.nextFloat()-0.5f)*w*1.4f;
+                float cp1y = cy + (r.nextFloat()-0.5f)*h*1.4f;
+                float cp2x = cx + (r.nextFloat()-0.5f)*w*1.4f;
+                float cp2y = cy + (r.nextFloat()-0.5f)*h*1.4f;
+                float endX = cx + (r.nextFloat()-0.5f)*w*0.8f;
+                float endY = cy + (r.nextFloat()-0.5f)*h*0.8f;
                 
                 float maxThick = w * 0.08f + r.nextFloat() * w * 0.08f;
                 int pressureType = r.nextInt(4);
@@ -316,9 +316,9 @@ public final class AsemicCodexApp {
             List<String> lines = Arrays.asList(source.split("\\R")); 
             int lineNo = 0;
             for (String line : lines) { 
-                float lineWidth = paintLine(g, line, left, top + lineNo * (int)(75*s), right, s, lineNo == 0, true);
+                float lineWidth = paintLine(g, line, left, top + lineNo * (int)(60*s), right, s, lineNo == 0, true);
                 float offset = Math.max(0, (right - left - lineWidth) / 2);
-                paintLine(g, line, left + (int)offset, top + lineNo * (int)(75*s), right, s, lineNo == 0, false); 
+                paintLine(g, line, left + (int)offset, top + lineNo * (int)(60*s), right, s, lineNo == 0, false); 
                 lineNo++; 
             }
             
@@ -353,19 +353,19 @@ public final class AsemicCodexApp {
                         }
                         wg.paint(g, x, y, gw, gh);
                     }
-                    x += gw + 15 * scale;
+                    x += gw + 8 * scale;
                     firstWord = false;
                 }
                 if (m.group(2) != null) {
                     for (char c : m.group(2).toCharArray()) {
-                        if (c == ' ' || c == '\t') x += 12 * scale;
+                        if (c == ' ' || c == '\t') x += 10 * scale;
                         else if (c == '\n') {} 
                         else {
                             if (!measureOnly) {
                                 g.setColor(new Color(180, 50, 50, 180));
                                 g.fill(new Ellipse2D.Float(x, y - 10 * scale, 5 * scale, 5 * scale));
                             }
-                            x += 10 * scale;
+                            x += 8 * scale;
                         }
                     }
                 }

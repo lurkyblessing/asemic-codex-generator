@@ -59,12 +59,12 @@ function paintWord(word, x, y, w, h, key) {
     const numComponents = 1 + (r() * 2 | 0);
     
     for (let i=0; i<numComponents; i++) {
-        let cx = x + r()*w;
-        let cy = y - r()*h;
-        let startX = cx + (r()-0.5)*w; let startY = cy + (r()-0.5)*h;
-        let cp1x = cx + (r()-0.5)*w*2.5; let cp1y = cy + (r()-0.5)*h*2.5;
-        let cp2x = cx + (r()-0.5)*w*2.5; let cp2y = cy + (r()-0.5)*h*2.5;
-        let endX = cx + (r()-0.5)*w; let endY = cy + (r()-0.5)*h;
+        let cx = x + (0.2 + r()*0.6)*w;
+        let cy = y - (0.2 + r()*0.6)*h;
+        let startX = cx + (r()-0.5)*w*0.8; let startY = cy + (r()-0.5)*h*0.8;
+        let cp1x = cx + (r()-0.5)*w*1.4; let cp1y = cy + (r()-0.5)*h*1.4;
+        let cp2x = cx + (r()-0.5)*w*1.4; let cp2y = cy + (r()-0.5)*h*1.4;
+        let endX = cx + (r()-0.5)*w*0.8; let endY = cy + (r()-0.5)*h*0.8;
         
         let maxThick = w*0.08 + r()*w*0.08;
         let pressureType = r() * 4 | 0;
@@ -204,18 +204,18 @@ function draw() {
         
         let lineWidth = 0;
         for (const token of words) {
-            if (token.word) lineWidth += (28*s + Math.min(6, token.word.length)*4*s) + 15*s;
+            if (token.word) lineWidth += (28*s + Math.min(6, token.word.length)*4*s) + 8*s;
             if (token.nonWord) {
                 for(let c of token.nonWord) {
-                    if (c===' '||c==='\t') lineWidth+=12*s; else lineWidth+=10*s;
+                    if (c===' '||c==='\t') lineWidth+=10*s; else lineWidth+=8*s;
                 }
             }
         }
-        if(words.length && words[words.length-1].word) lineWidth -= 15*s; // correct trailing space
+        if(words.length && words[words.length-1].word) lineWidth -= 8*s; // correct trailing space
         
         let startX = left + Math.max(0, (right - left - lineWidth)/2);
         let firstWordInLine = true;
-        let yPos = top + lineNo * 75*s;
+        let yPos = top + lineNo * 60*s;
         
         for (const token of words) {
             if (token.word) {
@@ -235,7 +235,7 @@ function draw() {
                     span.style.fontWeight = 'bold';
                     translation.appendChild(span);
                 }
-                startX += gw + 15*s;
+                startX += gw + 8*s;
                 firstWordInLine = false;
             }
             if (token.nonWord) {
@@ -245,13 +245,13 @@ function draw() {
                 translation.appendChild(span);
                 
                 for (let c of token.nonWord) {
-                    if (c===' '||c==='\t') startX += 12*s;
+                    if (c===' '||c==='\t') startX += 10*s;
                     else {
                         if (startX <= right) {
                             ctx.fillStyle = 'rgba(180, 50, 50, 0.7)';
                             ctx.beginPath(); ctx.arc(startX, yPos - 10*s, 2.5*s, 0, Math.PI*2); ctx.fill();
                         }
-                        startX += 10*s;
+                        startX += 8*s;
                     }
                 }
             }
