@@ -161,45 +161,46 @@ public final class AsemicCodexApp {
         void paint(Graphics2D g, float x, float y, float w, float h) {
             Random r = new Random(seed);
             g.setColor(color);
-            float penAngle = r.nextFloat() * (float)Math.PI;
-            int numComponents = 1 + r.nextInt(2);
+            float penAngle = -(float)Math.PI/8f + r.nextFloat() * (float)Math.PI/4f;
+            int numComponents = 2 + r.nextInt(3);
             
             for (int i = 0; i < numComponents; i++) {
-                float cx = x + (0.2f + r.nextFloat()*0.6f) * w;
-                float cy = y - (0.2f + r.nextFloat()*0.6f) * h;
-                float startX = cx + (r.nextFloat()-0.5f)*w*0.8f;
-                float startY = cy + (r.nextFloat()-0.5f)*h*0.8f;
-                float cp1x = cx + (r.nextFloat()-0.5f)*w*1.4f;
-                float cp1y = cy + (r.nextFloat()-0.5f)*h*1.4f;
-                float cp2x = cx + (r.nextFloat()-0.5f)*w*1.4f;
-                float cp2y = cy + (r.nextFloat()-0.5f)*h*1.4f;
-                float endX = cx + (r.nextFloat()-0.5f)*w*0.8f;
-                float endY = cy + (r.nextFloat()-0.5f)*h*0.8f;
+                float cx = x + w/2f;
+                float cy = y - h/2f;
+                float startX = cx + (r.nextFloat()-0.5f)*w*0.9f;
+                float startY = cy + (r.nextFloat()-0.5f)*h*0.9f;
+                float cp1x = cx + (r.nextFloat()-0.5f)*w*1.5f;
+                float cp1y = cy + (r.nextFloat()-0.5f)*h*1.5f;
+                float cp2x = cx + (r.nextFloat()-0.5f)*w*1.5f;
+                float cp2y = cy + (r.nextFloat()-0.5f)*h*1.5f;
+                float endX = cx + (r.nextFloat()-0.5f)*w*0.9f;
+                float endY = cy + (r.nextFloat()-0.5f)*h*0.9f;
                 
-                float maxThick = w * 0.08f + r.nextFloat() * w * 0.08f;
+                float maxThick = w * 0.15f + r.nextFloat() * w * 0.15f;
                 int pressureType = r.nextInt(4);
                 
                 drawCursiveBrush(g, startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, maxThick, penAngle, pressureType);
             }
             
-            int numDeco = 1 + r.nextInt(3);
+            int numDeco = 1 + r.nextInt(2);
             for (int i = 0; i < numDeco; i++) {
                 float type = r.nextFloat();
-                float dx = x + r.nextFloat() * w;
-                float dy = y - r.nextFloat() * h;
+                float dx = x + w/2f + (r.nextFloat()-0.5f)*w*0.8f;
+                float dy = y - h/2f + (r.nextFloat()-0.5f)*h*0.8f;
+                float decoThick = w * 0.12f + r.nextFloat() * w * 0.1f;
                 
                 if (type < 0.3f) {
-                    g.fill(new Ellipse2D.Float(dx - w*0.06f, dy - w*0.06f, w*0.12f, w*0.12f));
+                    g.fill(new Ellipse2D.Float(dx - decoThick/2f, dy - decoThick/2f, decoThick, decoThick));
                 } else if (type < 0.6f) {
-                    float length = w * 0.2f;
-                    float angle = penAngle + (r.nextBoolean() ? (float)Math.PI/2 : 0);
-                    float sx = dx + (float)Math.cos(angle)*length;
-                    float sy = dy + (float)Math.sin(angle)*length;
-                    drawCursiveBrush(g, dx, dy, dx + (float)Math.cos(angle)*length*0.5f, dy + (float)Math.sin(angle)*length*0.5f,
-                                     dx + (float)Math.cos(angle)*length*0.8f, dy + (float)Math.sin(angle)*length*0.8f,
-                                     sx, sy, w * 0.05f, penAngle, 1);
+                    float length = w * 0.4f + r.nextFloat() * w * 0.3f;
+                    float angle = r.nextBoolean() ? 0 : (float)Math.PI/4f;
+                    float sx = dx - (float)Math.cos(angle)*length/2f;
+                    float sy = dy - (float)Math.sin(angle)*length/2f;
+                    float ex = dx + (float)Math.cos(angle)*length/2f;
+                    float ey = dy + (float)Math.sin(angle)*length/2f;
+                    drawCursiveBrush(g, sx, sy, dx, dy, dx, dy, ex, ey, decoThick, penAngle, 1);
                 } else {
-                    drawCursiveBrush(g, dx, dy, dx + w * 0.2f, dy - h * 0.2f, dx - w * 0.2f, dy + h * 0.2f, dx + w * 0.1f, dy + h * 0.1f, w * 0.04f, penAngle, 0);
+                    drawCursiveBrush(g, dx, dy, dx + w * 0.3f, dy - h * 0.3f, dx - w * 0.3f, dy + h * 0.3f, dx + w * 0.1f, dy + h * 0.1f, decoThick, penAngle, 0);
                 }
             }
         }
@@ -316,9 +317,9 @@ public final class AsemicCodexApp {
             List<String> lines = Arrays.asList(source.split("\\R")); 
             int lineNo = 0;
             for (String line : lines) { 
-                float lineWidth = paintLine(g, line, left, top + lineNo * (int)(60*s), right, s, lineNo == 0, true);
+                float lineWidth = paintLine(g, line, left, top + lineNo * (int)(110*s), right, s, lineNo == 0, true);
                 float offset = Math.max(0, (right - left - lineWidth) / 2);
-                paintLine(g, line, left + (int)offset, top + lineNo * (int)(60*s), right, s, lineNo == 0, false); 
+                paintLine(g, line, left + (int)offset, top + lineNo * (int)(110*s), right, s, lineNo == 0, false); 
                 lineNo++; 
             }
             
@@ -341,8 +342,8 @@ public final class AsemicCodexApp {
                 if (m.group(1) != null) {
                     String word = m.group(1);
                     WordGlyph wg = current.wordGlyph(word);
-                    float gw = 28 * scale + Math.min(6, word.length()) * 5 * scale;
-                    float gh = 45 * scale;
+                    float gw = 50 * scale + Math.min(4, word.length()) * 12 * scale;
+                    float gh = 85 * scale;
                     
                     if (x + gw > (measureOnly ? right - left : right)) break;
                     
@@ -353,19 +354,19 @@ public final class AsemicCodexApp {
                         }
                         wg.paint(g, x, y, gw, gh);
                     }
-                    x += gw + 8 * scale;
+                    x += gw + 12 * scale;
                     firstWord = false;
                 }
                 if (m.group(2) != null) {
                     for (char c : m.group(2).toCharArray()) {
-                        if (c == ' ' || c == '\t') x += 10 * scale;
+                        if (c == ' ' || c == '\t') x += 20 * scale;
                         else if (c == '\n') {} 
                         else {
                             if (!measureOnly) {
                                 g.setColor(new Color(180, 50, 50, 180));
-                                g.fill(new Ellipse2D.Float(x, y - 10 * scale, 5 * scale, 5 * scale));
+                                g.fill(new Ellipse2D.Float(x, y - 10 * scale, 6 * scale, 6 * scale));
                             }
-                            x += 8 * scale;
+                            x += 15 * scale;
                         }
                     }
                 }

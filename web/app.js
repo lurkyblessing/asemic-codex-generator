@@ -55,42 +55,44 @@ function paintWord(word, x, y, w, h, key) {
     ctx.fillStyle = color;
     const r = rng(wordHash);
     
-    const penAngle = r() * Math.PI;
-    const numComponents = 1 + (r() * 2 | 0);
+    const penAngle = -Math.PI/8 + r() * Math.PI/4;
+    const numComponents = 2 + (r() * 3 | 0);
     
     for (let i=0; i<numComponents; i++) {
-        let cx = x + (0.2 + r()*0.6)*w;
-        let cy = y - (0.2 + r()*0.6)*h;
-        let startX = cx + (r()-0.5)*w*0.8; let startY = cy + (r()-0.5)*h*0.8;
-        let cp1x = cx + (r()-0.5)*w*1.4; let cp1y = cy + (r()-0.5)*h*1.4;
-        let cp2x = cx + (r()-0.5)*w*1.4; let cp2y = cy + (r()-0.5)*h*1.4;
-        let endX = cx + (r()-0.5)*w*0.8; let endY = cy + (r()-0.5)*h*0.8;
+        let cx = x + w/2;
+        let cy = y - h/2;
+        let startX = cx + (r()-0.5)*w*0.9; let startY = cy + (r()-0.5)*h*0.9;
+        let cp1x = cx + (r()-0.5)*w*1.5; let cp1y = cy + (r()-0.5)*h*1.5;
+        let cp2x = cx + (r()-0.5)*w*1.5; let cp2y = cy + (r()-0.5)*h*1.5;
+        let endX = cx + (r()-0.5)*w*0.9; let endY = cy + (r()-0.5)*h*0.9;
         
-        let maxThick = w*0.08 + r()*w*0.08;
+        let maxThick = w*0.15 + r()*w*0.15;
         let pressureType = r() * 4 | 0;
         drawCursiveBrush(startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, maxThick, penAngle, pressureType);
     }
     
-    const numDeco = 1 + (r() * 3 | 0);
+    const numDeco = 1 + (r() * 2 | 0);
     for (let i=0; i<numDeco; i++) {
         let type = r();
-        let dx = x + r()*w;
-        let dy = y - r()*h;
+        let dx = x + w/2 + (r()-0.5)*w*0.8;
+        let dy = y - h/2 + (r()-0.5)*h*0.8;
+        let decoThick = w*0.12 + r()*w*0.1;
         
         if (type < 0.3) {
             ctx.beginPath();
-            if (ctx.ellipse) ctx.ellipse(dx, dy, w*0.08, w*0.08, 0, 0, Math.PI*2);
-            else ctx.arc(dx, dy, w*0.08, 0, Math.PI*2);
+            if (ctx.ellipse) ctx.ellipse(dx, dy, decoThick/2, decoThick/2, 0, 0, Math.PI*2);
+            else ctx.arc(dx, dy, decoThick/2, 0, Math.PI*2);
             ctx.fill();
         } else if (type < 0.6) {
-            let length = w*0.2;
-            let angle = penAngle + (r()>0.5 ? Math.PI/2 : 0);
-            drawCursiveBrush(dx, dy, dx+Math.cos(angle)*length*0.5, dy+Math.sin(angle)*length*0.5, 
-                             dx+Math.cos(angle)*length*0.8, dy+Math.sin(angle)*length*0.8, 
-                             dx+Math.cos(angle)*length, dy+Math.sin(angle)*length, 
-                             w*0.05, penAngle, 1);
+            let length = w*0.4 + r()*w*0.3;
+            let angle = r() > 0.5 ? 0 : Math.PI/4;
+            drawCursiveBrush(dx - Math.cos(angle)*length/2, dy - Math.sin(angle)*length/2, 
+                             dx, dy, 
+                             dx, dy, 
+                             dx + Math.cos(angle)*length/2, dy + Math.sin(angle)*length/2, 
+                             decoThick, penAngle, 1);
         } else {
-            drawCursiveBrush(dx, dy, dx+w*0.2, dy-h*0.2, dx-w*0.2, dy+h*0.2, dx+w*0.1, dy+h*0.1, w*0.04, penAngle, 0);
+            drawCursiveBrush(dx, dy, dx+w*0.3, dy-h*0.3, dx-w*0.3, dy+h*0.3, dx+w*0.1, dy+h*0.1, decoThick, penAngle, 0);
         }
     }
     return color;
@@ -204,23 +206,23 @@ function draw() {
         
         let lineWidth = 0;
         for (const token of words) {
-            if (token.word) lineWidth += (28*s + Math.min(6, token.word.length)*4*s) + 8*s;
+            if (token.word) lineWidth += (50*s + Math.min(4, token.word.length)*12*s) + 12*s;
             if (token.nonWord) {
                 for(let c of token.nonWord) {
-                    if (c===' '||c==='\t') lineWidth+=10*s; else lineWidth+=8*s;
+                    if (c===' '||c==='\t') lineWidth+=20*s; else lineWidth+=15*s;
                 }
             }
         }
-        if(words.length && words[words.length-1].word) lineWidth -= 8*s; // correct trailing space
+        if(words.length && words[words.length-1].word) lineWidth -= 12*s; // correct trailing space
         
         let startX = left + Math.max(0, (right - left - lineWidth)/2);
         let firstWordInLine = true;
-        let yPos = top + lineNo * 60*s;
+        let yPos = top + lineNo * 110*s;
         
         for (const token of words) {
             if (token.word) {
-                const gw = 28*s + Math.min(6, token.word.length)*4*s; // Slightly narrower width bounding
-                const gh = 45*s;
+                const gw = 50*s + Math.min(4, token.word.length)*12*s; // Slightly narrower width bounding
+                const gh = 85*s;
                 
                 if (startX + gw <= right) {
                     if (firstWordInLine && lineNo === 0) {
@@ -235,7 +237,7 @@ function draw() {
                     span.style.fontWeight = 'bold';
                     translation.appendChild(span);
                 }
-                startX += gw + 8*s;
+                startX += gw + 12*s;
                 firstWordInLine = false;
             }
             if (token.nonWord) {
@@ -245,13 +247,13 @@ function draw() {
                 translation.appendChild(span);
                 
                 for (let c of token.nonWord) {
-                    if (c===' '||c==='\t') startX += 10*s;
+                    if (c===' '||c==='\t') startX += 20*s;
                     else {
                         if (startX <= right) {
                             ctx.fillStyle = 'rgba(180, 50, 50, 0.7)';
-                            ctx.beginPath(); ctx.arc(startX, yPos - 10*s, 2.5*s, 0, Math.PI*2); ctx.fill();
+                            ctx.beginPath(); ctx.arc(startX, yPos - 10*s, 3.5*s, 0, Math.PI*2); ctx.fill();
                         }
-                        startX += 8*s;
+                        startX += 15*s;
                     }
                 }
             }
