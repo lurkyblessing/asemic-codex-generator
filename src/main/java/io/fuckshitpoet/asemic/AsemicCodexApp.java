@@ -27,7 +27,7 @@ public final class AsemicCodexApp {
         new Color(110, 30, 150)  // Purple
     };
 
-    private final JTextArea poem = new JTextArea("In the archive of sleep\nI found a language made of moth wings.\nEach word opened once\nand would not translate.");
+    private final JTextArea poem = new JTextArea("boy crazed\n\nslow haze\n\ndon’t blame me for trying to pass my days\n\ni’m not wrong\n\nfor fighting sadness with whimsy\n\nso don’t blame me\n\nwhen i beg him to kiss me\n\n“boy crazed”\n\nnot i\n\ni’ve never had a boy on my mind \n\n- fuckshitpoet");
     private final JTextField seed = new JTextField("seraph-1313");
     private final JTextPane translation = new JTextPane();
     private final CodexPanel page = new CodexPanel();
