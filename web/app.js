@@ -4,31 +4,197 @@ const poem = document.querySelector('#poem');
 const seed = document.querySelector('#seed');
 const translation = document.querySelector('#translation');
 const grammar = document.querySelector('#grammar');
-let rand, glyphs;
-const manuscriptFrame = new Image();
-let frameReady = false;
-manuscriptFrame.src = 'assets/pink-gothic-frame.jpeg';
-manuscriptFrame.onload = () => { frameReady = true; draw(); };
 
-function hash(text) { let h=2166136261; for (const c of text) { h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }
+const PALETTE = [
+    'rgb(155, 20, 30)',  // Deep red
+    'rgb(20, 30, 180)',  // Cobalt Blue
+    'rgb(30, 120, 50)',  // Forest Green
+    'rgb(200, 130, 50)', // Warm Ochre
+    'rgb(200, 20, 100)', // Magenta
+    'rgb(50, 140, 150)', // Teal
+    'rgb(110, 30, 150)'  // Purple
+];
+
+function hash(text) { let h=2166136261; for (const c of text) { h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return Math.abs(h>>>0); }
 function rng(value) { let a=value>>>0; return () => { a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296; }; }
-function setup() { rand=rng(hash(seed.value || 'unnamed')); glyphs={}; 'abcdefghijklmnopqrstuvwxyz'.split('').forEach(c=>glyphs[c]=Array.from({length:2+(rand()*3|0)},()=>[rand(),rand(),rand(),rand(),rand(),rand()])); }
-function fakeText(str) { const rune=['⟆','ʚ','⋔','ꝏ','ᚫ','⸸','ꜥ','⨳','᛫','❦']; let i=0; return str.toLowerCase().replace(/[a-z]/g,()=>rune[(hash(seed.value+i++)+i*7)%rune.length]).replace(/\s+/g,' '); }
-function lineWrap(text,max) { const words=text.split(/\s+/),lines=[];let line=[];for(const word of words){if((line.join(' ').length+word.length)>max){lines.push(line.join(' '));line=[];}line.push(word)}if(line.length)lines.push(line.join(' '));return lines; }
-function glyph(c,x,y,s) { const paths=glyphs[c]; if(!paths)return 12*s; ctx.save();ctx.strokeStyle='#3d354f';ctx.fillStyle='#3d354f';ctx.lineWidth=2.2*s;ctx.lineCap='round';ctx.lineJoin='round'; for(const p of paths){ctx.beginPath();ctx.moveTo(x+p[0]*22*s,y-p[1]*34*s);ctx.quadraticCurveTo(x+p[2]*23*s,y-p[3]*35*s,x+p[4]*25*s,y-p[5]*34*s);ctx.stroke();} const r=rng(hash(c+seed.value));if(r()>.42){ctx.beginPath();ctx.arc(x+(r()*18+2)*s,y-(r()*25+17)*s,2.1*s,0,Math.PI*2);ctx.fill()}ctx.restore();return 29*s; }
-function petal(x,y,r,rot) { ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(-r*.38,-r*.18,-r*.35,-r*.92,0,-r);ctx.bezierCurveTo(r*.35,-r*.92,r*.38,-r*.18,0,0);ctx.fill();ctx.stroke();ctx.restore(); }
-function flower(x,y,r) { ctx.save();ctx.fillStyle='#d887a4';ctx.strokeStyle='#3d354f';ctx.lineWidth=1.4;for(let i=0;i<5;i++)petal(x,y,r,i*Math.PI*2/5);ctx.fillStyle='#d6ad52';ctx.beginPath();ctx.arc(x,y,r*.25,0,7);ctx.fill();ctx.restore(); }
-function tower(x,y,s,flip=1) { ctx.save();ctx.translate(x,y);ctx.scale(flip,1);ctx.strokeStyle='#3d354f';ctx.fillStyle='#9cae9a';ctx.lineWidth=3*s;ctx.fillRect(-34*s,0,68*s,250*s);ctx.strokeRect(-34*s,0,68*s,250*s);ctx.beginPath();ctx.moveTo(-45*s,0);ctx.lineTo(0,-74*s);ctx.lineTo(45*s,0);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#f5c4cf';ctx.fillRect(-19*s,42*s,38*s,154*s);ctx.strokeRect(-19*s,42*s,38*s,154*s);for(let yy=58*s;yy<184*s;yy+=35*s){ctx.beginPath();ctx.arc(0,yy,10*s,0,7);ctx.stroke();}ctx.restore(); }
-function vine(x1,y1,x2,y2,steps=5) { ctx.save();ctx.strokeStyle='#4e5d55';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x1,y1);ctx.bezierCurveTo(x1+(x2-x1)*.15,y1-42,x1+(x2-x1)*.72,y2-36,x2,y2);ctx.stroke();for(let i=1;i<steps;i++){let t=i/steps,x=x1+(x2-x1)*t,y=y1+(y2-y1)*t-35*Math.sin(t*Math.PI);ctx.fillStyle='#bf698b';flower(x,y,10+(i%2)*2);}ctx.restore(); }
-function paper() { const w=canvas.width,h=canvas.height; ctx.fillStyle='#f5d6d0';ctx.fillRect(0,0,w,h); if(frameReady) { ctx.drawImage(manuscriptFrame,0,0,w,h); ctx.fillStyle='rgba(250,224,219,.16)';ctx.fillRect(0,0,w,h); return; } const noise=rng(hash(seed.value+'paper'));for(let i=0;i<8800;i++){ctx.fillStyle=`rgba(114,57,81,${.012+noise()*.035})`;ctx.fillRect(noise()*w,noise()*h,1+noise()*3,1+noise()*3)}ctx.strokeStyle='#3d354f';ctx.lineWidth=4;ctx.strokeRect(26,26,w-52,h-52);ctx.strokeStyle='#c37d96';ctx.lineWidth=2;ctx.strokeRect(43,43,w-86,h-86); }
-function draw() { setup(); const w=canvas.width,h=canvas.height,s=w/1200; paper();
-  // Original Gothic garden frame: towers, medallion, vines, and petals.
-  const top = frameReady ? 330 : 265, left = frameReady ? 180 : 220;
-  if(!frameReady) { tower(105*s,190*s,s);tower(1095*s,190*s,s,-1);ctx.strokeStyle='#3d354f';ctx.fillStyle='#9cae9a';ctx.lineWidth=4*s;ctx.beginPath();ctx.moveTo(140*s,200*s);ctx.quadraticCurveTo(600*s,58*s,1060*s,200*s);ctx.lineTo(1040*s,228*s);ctx.quadraticCurveTo(600*s,112*s,160*s,228*s);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='#e5a2b7';ctx.beginPath();ctx.arc(600*s,125*s,47*s,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#3d354f';ctx.font=`italic ${26*s}px Libre Baskerville`;ctx.textAlign='center';ctx.fillText('✦',600*s,134*s);ctx.textAlign='left';vine(150*s,210*s,350*s,315*s);vine(1050*s,210*s,850*s,315*s); }
-  ctx.fillStyle='#7b3f58';ctx.font=`bold ${27*s}px Libre Baskerville`;ctx.textAlign='center';ctx.fillText(`THE ${hash(seed.value).toString(36).toUpperCase()} CHAPTER`,600*s,top*s);ctx.textAlign='left';
-  const lines=lineWrap(poem.value,33);let y=(top+125)*s; lines.slice(0,12).forEach((line,li)=>{let x=left*s; for(let i=0;i<line.length;i++){const c=line[i].toLowerCase();if(/[a-z]/.test(c)){if(li===0&&i===0){ctx.fillStyle='#c97b9a';ctx.strokeStyle='#3d354f';ctx.lineWidth=2*s;ctx.fillRect(x-11*s,y-50*s,45*s,58*s);ctx.strokeRect(x-11*s,y-50*s,45*s,58*s);}x+=glyph(c,x,y,li===0&&i===0?1.35*s:s)}else if(c===' ')x+=14*s;else{x+=13*s;ctx.fillStyle='#8b4363';ctx.beginPath();ctx.arc(x,y-10*s,3*s,0,7);ctx.fill();}}y+=60*s;});
-  if(!frameReady) { ctx.strokeStyle='#3d354f';ctx.fillStyle='#9cae9a';ctx.lineWidth=2*s;ctx.fillRect(115*s,h-190*s,970*s,32*s);ctx.strokeRect(115*s,h-190*s,970*s,32*s);for(let x=160*s;x<1040*s;x+=76*s){ctx.beginPath();ctx.arc(x,h-174*s,19*s,Math.PI,0);ctx.stroke();flower(x,h-177*s,8*s);} }ctx.fillStyle='#4d4657';ctx.font=`italic ${14*s}px Libre Baskerville`;ctx.fillText('Breath reverses the next word · Sacred pairs bind into one hand · No glossary survives.',180*s,h-95*s);
- translation.textContent=fakeText(poem.value); grammar.textContent=`Grammar of the ${hash(seed.value).toString(36).toUpperCase()} hand: verbs take a hooked ascender; pauses become votive marks; th, sh, and ch are sacred ligatures.`;
+
+function drawBrush(x1, y1, cx, cy, x2, y2, maxThick) {
+    const steps = 40;
+    for (let i = 0; i <= steps; i++) {
+        let t = i / steps;
+        let inv = 1 - t;
+        let px = inv*inv*x1 + 2*inv*t*cx + t*t*x2;
+        let py = inv*inv*y1 + 2*inv*t*cy + t*t*y2;
+        let thick = maxThick * (0.05 + 0.95 * Math.sin(t * Math.PI));
+        ctx.beginPath(); ctx.arc(px, py, thick/2, 0, Math.PI*2); ctx.fill();
+    }
 }
-document.querySelector('#transmute').addEventListener('click',draw); document.querySelector('#new-seed').addEventListener('click',()=>{seed.value=Math.random().toString(36).slice(2,10);draw()});document.querySelector('#download').addEventListener('click',()=>{const a=document.createElement('a');a.download='asemic-codex.png';a.href=canvas.toDataURL('image/png');a.click();});
-draw();
+
+function paintWord(word, x, y, w, h, key) {
+    const wordHash = hash(word.toLowerCase() + key);
+    const color = PALETTE[wordHash % PALETTE.length];
+    ctx.fillStyle = color;
+    
+    const r = rng(wordHash);
+    const numStrokes = 2 + (r()*4 | 0);
+    
+    for (let i=0; i<numStrokes; i++) {
+        let x1 = x + r()*w, y1 = y - r()*h;
+        let cx = x + r()*w, cy = y - r()*h;
+        let x2 = x + r()*w, y2 = y - r()*h;
+        let maxThick = w*0.1 + r()*w*0.15;
+        drawBrush(x1, y1, cx, cy, x2, y2, maxThick);
+    }
+    if (r() > 0.5) {
+        let rDot = w*0.1 + r()*w*0.15;
+        ctx.beginPath(); ctx.arc(x + r()*w, y - r()*h, rDot, 0, Math.PI*2); ctx.fill();
+    }
+    return color;
+}
+
+function papyrusBorder(w, h, s, key) {
+    ctx.fillStyle = 'rgb(30, 25, 22)'; ctx.fillRect(0, 0, w, h);
+    const m = Math.max(22, w/18);
+    const pageX = m, pageY = m/2, pageW = w - 2*m, pageH = h - m;
+    
+    ctx.fillStyle = 'rgb(234, 222, 203)';
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(pageX, pageY, pageW, pageH, 12) : ctx.rect(pageX, pageY, pageW, pageH); ctx.fill();
+    
+    const r = rng(hash(key + 'grain'));
+    for (let i = 0; i < 4000; i++) {
+        const a = 3 + (r() * 6 | 0);
+        ctx.fillStyle = `rgba(160, 140, 120, ${a/255})`;
+        ctx.fillRect(pageX + r()*pageW, pageY + r()*pageH, 1 + r()*2, 1 + r()*2);
+    }
+    
+    const bw = 50 * s;
+    ctx.fillStyle = 'rgb(215, 205, 185)';
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(pageX + 8, pageY + 8, pageW - 16, pageH - 16, 8) : ctx.rect(pageX+8, pageY+8, pageW-16, pageH-16); ctx.fill();
+    ctx.fillStyle = 'rgb(234, 222, 203)';
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(pageX + bw, pageY + bw, pageW - 2*bw, pageH - 2*bw, 12) : ctx.rect(pageX+bw, pageY+bw, pageW-2*bw, pageH-2*bw); ctx.fill();
+    
+    const drawFan = (x, y, rad, a1, a2) => { ctx.fillStyle = 'rgb(100, 140, 150)'; ctx.beginPath(); ctx.arc(x, y, rad, a1, a2); ctx.fill(); };
+    const drawPetal = (p) => { ctx.fillStyle = 'rgb(175, 55, 55)'; ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); ctx.lineTo(p[1][0], p[1][1]); ctx.lineTo(p[2][0], p[2][1]); ctx.fill(); };
+    
+    for (let bx = pageX + bw + 30*s; bx < pageX + pageW - bw - 30*s; bx += 60*s) {
+        drawFan(bx - 15*s, pageY + 15*s, 25*s, Math.PI, 0); 
+        drawFan(bx - 15*s, pageY + pageH - 40*s, 25*s, 0, Math.PI); 
+        drawPetal([[bx, pageY+15*s], [bx-20*s, pageY+25*s], [bx-10*s, pageY+35*s]]);
+        drawPetal([[bx, pageY+15*s], [bx+20*s, pageY+25*s], [bx+10*s, pageY+35*s]]);
+        drawPetal([[bx, pageY+pageH-15*s], [bx-20*s, pageY+pageH-25*s], [bx-10*s, pageY+pageH-35*s]]);
+        drawPetal([[bx, pageY+pageH-15*s], [bx+20*s, pageY+pageH-25*s], [bx+10*s, pageY+pageH-35*s]]);
+    }
+    for (let by = pageY + bw + 30*s; by < pageY + pageH - bw - 30*s; by += 60*s) {
+        drawFan(pageX + 15*s, by - 15*s, 25*s, -Math.PI/2, Math.PI/2); 
+        drawFan(pageX + pageW - 40*s, by - 15*s, 25*s, Math.PI/2, -Math.PI/2); 
+        drawPetal([[pageX+15*s, by], [pageX+25*s, by-20*s], [pageX+35*s, by-10*s]]);
+        drawPetal([[pageX+15*s, by], [pageX+25*s, by+20*s], [pageX+35*s, by+10*s]]);
+        drawPetal([[pageX+pageW-15*s, by], [pageX+pageW-25*s, by-20*s], [pageX+pageW-35*s, by-10*s]]);
+        drawPetal([[pageX+pageW-15*s, by], [pageX+pageW-25*s, by+20*s], [pageX+pageW-35*s, by+10*s]]);
+    }
+    
+    const innerM = bw + 8*s;
+    ctx.strokeStyle = 'rgb(150, 120, 90)'; ctx.lineWidth = 2.5*s;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(pageX + innerM, pageY + innerM, pageW - 2*innerM, pageH - 2*innerM, 20) : ctx.rect(pageX+innerM, pageY+innerM, pageW-2*innerM, pageH-2*innerM); ctx.stroke();
+    
+    return { pageX, pageY, pageW, pageH, innerM };
+}
+
+function draw() {
+    const key = seed.value || 'unnamed';
+    const w = canvas.width, h = canvas.height, s = w/900;
+    const { pageX, pageY, pageW, pageH, innerM } = papyrusBorder(w, h, s, key);
+    
+    const left = pageX + innerM + 30*s;
+    const right = pageX + pageW - innerM - 30*s;
+    const top = pageY + innerM + 70*s;
+    
+    const scriptKey = hash(key).toString(36).toUpperCase();
+    const headerText = `THE  ${scriptKey}  FRAGMENT`;
+    ctx.fillStyle = 'rgb(155, 40, 40)'; ctx.font = `bold ${22*s}px serif`;
+    const headerW = ctx.measureText(headerText).width;
+    ctx.fillText(headerText, pageX + (pageW - headerW)/2, pageY + innerM + 45*s);
+    
+    const footerText = "Codex rules: Colors distinguish root concepts. Calligraphic weight indicates stress.";
+    ctx.fillStyle = 'rgb(120, 100, 80)'; ctx.font = `italic ${14*s}px serif`;
+    const footerW = ctx.measureText(footerText).width;
+    ctx.fillText(footerText, pageX + (pageW - footerW)/2, pageY + pageH - innerM - 25*s);
+    
+    translation.innerHTML = '';
+    
+    const lines = poem.value.split(/\r?\n/);
+    let lineNo = 0;
+    
+    for (const line of lines) {
+        const regex = /([a-zA-Z']+)|([^a-zA-Z']+)/g;
+        let m, words = [];
+        while ((m = regex.exec(line)) !== null) {
+            words.push({ word: m[1], nonWord: m[2] });
+        }
+        
+        let lineWidth = 0;
+        for (const token of words) {
+            if (token.word) lineWidth += (28*s + Math.min(6, token.word.length)*5*s) + 15*s;
+            if (token.nonWord) {
+                for(let c of token.nonWord) {
+                    if (c===' '||c==='\t') lineWidth+=12*s; else lineWidth+=10*s;
+                }
+            }
+        }
+        if(words.length && words[words.length-1].word) lineWidth -= 15*s; // correct trailing space
+        
+        let startX = left + Math.max(0, (right - left - lineWidth)/2);
+        let firstWordInLine = true;
+        let yPos = top + lineNo * 75*s;
+        
+        for (const token of words) {
+            if (token.word) {
+                const gw = 28*s + Math.min(6, token.word.length)*5*s;
+                const gh = 45*s;
+                
+                if (startX + gw <= right) {
+                    if (firstWordInLine && lineNo === 0) {
+                        ctx.fillStyle = 'rgba(230, 200, 130, 0.4)';
+                        ctx.beginPath(); ctx.ellipse(startX - 10*s + (gw+20*s)/2, yPos - gh + (gh+20*s)/2, (gw+20*s)/2, (gh+20*s)/2, 0, 0, Math.PI*2); ctx.fill();
+                    }
+                    const color = paintWord(token.word, startX, yPos, gw, gh, key);
+                    
+                    const span = document.createElement('span');
+                    span.textContent = token.word;
+                    span.style.color = color;
+                    span.style.fontWeight = 'bold';
+                    translation.appendChild(span);
+                }
+                startX += gw + 15*s;
+                firstWordInLine = false;
+            }
+            if (token.nonWord) {
+                const span = document.createElement('span');
+                span.textContent = token.nonWord;
+                span.style.color = 'rgb(130, 140, 140)';
+                translation.appendChild(span);
+                
+                for (let c of token.nonWord) {
+                    if (c===' '||c==='\t') startX += 12*s;
+                    else {
+                        if (startX <= right) {
+                            ctx.fillStyle = 'rgba(180, 50, 50, 0.7)';
+                            ctx.beginPath(); ctx.arc(startX, yPos - 10*s, 2.5*s, 0, Math.PI*2); ctx.fill();
+                        }
+                        startX += 10*s;
+                    }
+                }
+            }
+        }
+        translation.appendChild(document.createElement('br'));
+        lineNo++;
+    }
+    grammar.textContent = footerText;
+}
+
+document.querySelector('#transmute').addEventListener('click',draw); 
+document.querySelector('#new-seed').addEventListener('click',()=>{seed.value=Math.random().toString(36).slice(2,10);draw()});
+document.querySelector('#download').addEventListener('click',()=>{const a=document.createElement('a');a.download='asemic-codex.png';a.href=canvas.toDataURL('image/png');a.click();});
+
+// Run once on load
+if (document.fonts) { document.fonts.ready.then(draw); } else { setTimeout(draw, 200); }
