@@ -18,15 +18,34 @@ const PALETTE = [
 function hash(text) { let h=2166136261; for (const c of text) { h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return Math.abs(h>>>0); }
 function rng(value) { let a=value>>>0; return () => { a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296; }; }
 
-function drawBrush(x1, y1, cx, cy, x2, y2, maxThick) {
-    const steps = 40;
+function drawCursiveBrush(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, maxThick, penAngle, pressureType) {
+    const steps = 80;
+    const penWidth = maxThick;
+    const penHeight = maxThick * 0.15;
+    
     for (let i = 0; i <= steps; i++) {
         let t = i / steps;
         let inv = 1 - t;
-        let px = inv*inv*x1 + 2*inv*t*cx + t*t*x2;
-        let py = inv*inv*y1 + 2*inv*t*cy + t*t*y2;
-        let thick = maxThick * (0.05 + 0.95 * Math.sin(t * Math.PI));
-        ctx.beginPath(); ctx.arc(px, py, thick/2, 0, Math.PI*2); ctx.fill();
+        
+        let px = inv*inv*inv*x1 + 3*inv*inv*t*cp1x + 3*inv*t*t*cp2x + t*t*t*x2;
+        let py = inv*inv*inv*y1 + 3*inv*inv*t*cp1y + 3*inv*t*t*cp2y + t*t*t*y2;
+        
+        let pressure = 1.0;
+        if (pressureType === 0) pressure = Math.sin(t * Math.PI);
+        else if (pressureType === 1) pressure = Math.pow(1 - t, 0.5);
+        else if (pressureType === 2) pressure = Math.pow(t, 0.5);
+        else pressure = 0.8 + 0.2*Math.sin(t*Math.PI*3);
+        
+        let w = penWidth * Math.max(0.1, pressure);
+        let h = penHeight * Math.max(0.1, pressure);
+        
+        ctx.beginPath();
+        if (ctx.ellipse) {
+            ctx.ellipse(px, py, w/2, h/2, penAngle, 0, Math.PI*2);
+        } else {
+            ctx.arc(px, py, w/2, 0, Math.PI*2); // fallback
+        }
+        ctx.fill();
     }
 }
 
@@ -34,20 +53,45 @@ function paintWord(word, x, y, w, h, key) {
     const wordHash = hash(word.toLowerCase() + key);
     const color = PALETTE[wordHash % PALETTE.length];
     ctx.fillStyle = color;
-    
     const r = rng(wordHash);
-    const numStrokes = 3 + (r()*4 | 0); // More strokes for complexity
     
-    for (let i=0; i<numStrokes; i++) {
-        let x1 = x + r()*w, y1 = y - r()*h;
-        let cx = x + r()*w, cy = y - r()*h;
-        let x2 = x + r()*w, y2 = y - r()*h;
-        let maxThick = w*0.035 + r()*w*0.04; // Thinner, elegant calligraphy
-        drawBrush(x1, y1, cx, cy, x2, y2, maxThick);
+    const penAngle = r() * Math.PI;
+    const numComponents = 1 + (r() * 2 | 0);
+    
+    for (let i=0; i<numComponents; i++) {
+        let cx = x + r()*w;
+        let cy = y - r()*h;
+        let startX = cx + (r()-0.5)*w; let startY = cy + (r()-0.5)*h;
+        let cp1x = cx + (r()-0.5)*w*2.5; let cp1y = cy + (r()-0.5)*h*2.5;
+        let cp2x = cx + (r()-0.5)*w*2.5; let cp2y = cy + (r()-0.5)*h*2.5;
+        let endX = cx + (r()-0.5)*w; let endY = cy + (r()-0.5)*h;
+        
+        let maxThick = w*0.08 + r()*w*0.08;
+        let pressureType = r() * 4 | 0;
+        drawCursiveBrush(startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, maxThick, penAngle, pressureType);
     }
-    if (r() > 0.3) {
-        let rDot = w*0.06 + r()*w*0.08;
-        ctx.beginPath(); ctx.arc(x + r()*w, y - r()*h, rDot, 0, Math.PI*2); ctx.fill();
+    
+    const numDeco = 1 + (r() * 3 | 0);
+    for (let i=0; i<numDeco; i++) {
+        let type = r();
+        let dx = x + r()*w;
+        let dy = y - r()*h;
+        
+        if (type < 0.3) {
+            ctx.beginPath();
+            if (ctx.ellipse) ctx.ellipse(dx, dy, w*0.08, w*0.08, 0, 0, Math.PI*2);
+            else ctx.arc(dx, dy, w*0.08, 0, Math.PI*2);
+            ctx.fill();
+        } else if (type < 0.6) {
+            let length = w*0.2;
+            let angle = penAngle + (r()>0.5 ? Math.PI/2 : 0);
+            drawCursiveBrush(dx, dy, dx+Math.cos(angle)*length*0.5, dy+Math.sin(angle)*length*0.5, 
+                             dx+Math.cos(angle)*length*0.8, dy+Math.sin(angle)*length*0.8, 
+                             dx+Math.cos(angle)*length, dy+Math.sin(angle)*length, 
+                             w*0.05, penAngle, 1);
+        } else {
+            drawCursiveBrush(dx, dy, dx+w*0.2, dy-h*0.2, dx-w*0.2, dy+h*0.2, dx+w*0.1, dy+h*0.1, w*0.04, penAngle, 0);
+        }
     }
     return color;
 }

@@ -161,31 +161,75 @@ public final class AsemicCodexApp {
         void paint(Graphics2D g, float x, float y, float w, float h) {
             Random r = new Random(seed);
             g.setColor(color);
-            int numStrokes = 2 + r.nextInt(4);
+            float penAngle = r.nextFloat() * (float)Math.PI;
+            int numComponents = 1 + r.nextInt(2);
             
-            for (int i = 0; i < numStrokes; i++) {
-                float x1 = x + r.nextFloat() * w; float y1 = y - r.nextFloat() * h;
-                float cx = x + r.nextFloat() * w; float cy = y - r.nextFloat() * h;
-                float x2 = x + r.nextFloat() * w; float y2 = y - r.nextFloat() * h;
-                float maxThick = w * 0.1f + r.nextFloat() * w * 0.15f;
-                drawBrush(g, x1, y1, cx, cy, x2, y2, maxThick);
+            for (int i = 0; i < numComponents; i++) {
+                float cx = x + r.nextFloat() * w;
+                float cy = y - r.nextFloat() * h;
+                float startX = cx + (r.nextFloat()-0.5f)*w;
+                float startY = cy + (r.nextFloat()-0.5f)*h;
+                float cp1x = cx + (r.nextFloat()-0.5f)*w*2.5f;
+                float cp1y = cy + (r.nextFloat()-0.5f)*h*2.5f;
+                float cp2x = cx + (r.nextFloat()-0.5f)*w*2.5f;
+                float cp2y = cy + (r.nextFloat()-0.5f)*h*2.5f;
+                float endX = cx + (r.nextFloat()-0.5f)*w;
+                float endY = cy + (r.nextFloat()-0.5f)*h;
+                
+                float maxThick = w * 0.08f + r.nextFloat() * w * 0.08f;
+                int pressureType = r.nextInt(4);
+                
+                drawCursiveBrush(g, startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, maxThick, penAngle, pressureType);
             }
             
-            if (r.nextBoolean()) {
-                float rDot = w * 0.1f + r.nextFloat() * w * 0.15f;
-                g.fill(new Ellipse2D.Float(x + r.nextFloat() * w, y - r.nextFloat() * h, rDot, rDot));
+            int numDeco = 1 + r.nextInt(3);
+            for (int i = 0; i < numDeco; i++) {
+                float type = r.nextFloat();
+                float dx = x + r.nextFloat() * w;
+                float dy = y - r.nextFloat() * h;
+                
+                if (type < 0.3f) {
+                    g.fill(new Ellipse2D.Float(dx - w*0.06f, dy - w*0.06f, w*0.12f, w*0.12f));
+                } else if (type < 0.6f) {
+                    float length = w * 0.2f;
+                    float angle = penAngle + (r.nextBoolean() ? (float)Math.PI/2 : 0);
+                    float sx = dx + (float)Math.cos(angle)*length;
+                    float sy = dy + (float)Math.sin(angle)*length;
+                    drawCursiveBrush(g, dx, dy, dx + (float)Math.cos(angle)*length*0.5f, dy + (float)Math.sin(angle)*length*0.5f,
+                                     dx + (float)Math.cos(angle)*length*0.8f, dy + (float)Math.sin(angle)*length*0.8f,
+                                     sx, sy, w * 0.05f, penAngle, 1);
+                } else {
+                    drawCursiveBrush(g, dx, dy, dx + w * 0.2f, dy - h * 0.2f, dx - w * 0.2f, dy + h * 0.2f, dx + w * 0.1f, dy + h * 0.1f, w * 0.04f, penAngle, 0);
+                }
             }
         }
         
-        private void drawBrush(Graphics2D g, float x1, float y1, float cx, float cy, float x2, float y2, float maxThick) {
-            int steps = 40;
+        private void drawCursiveBrush(Graphics2D g, float x1, float y1, float cp1x, float cp1y, float cp2x, float cp2y, float x2, float y2, float maxThick, float penAngle, int pressureType) {
+            int steps = 80;
+            float penWidth = maxThick;
+            float penHeight = maxThick * 0.15f;
+            
+            AffineTransform orig = g.getTransform();
             for (int i = 0; i <= steps; i++) {
                 float t = i / (float) steps;
                 float inv = 1 - t;
-                float px = inv * inv * x1 + 2 * inv * t * cx + t * t * x2;
-                float py = inv * inv * y1 + 2 * inv * t * cy + t * t * y2;
-                float thick = maxThick * (0.05f + 0.95f * (float) Math.sin(t * Math.PI));
-                g.fill(new Ellipse2D.Float(px - thick/2, py - thick/2, thick, thick));
+                
+                float px = inv*inv*inv*x1 + 3*inv*inv*t*cp1x + 3*inv*t*t*cp2x + t*t*t*x2;
+                float py = inv*inv*inv*y1 + 3*inv*inv*t*cp1y + 3*inv*t*t*cp2y + t*t*t*y2;
+                
+                float pressure = 1.0f;
+                if (pressureType == 0) pressure = (float)Math.sin(t * Math.PI);
+                else if (pressureType == 1) pressure = (float)Math.pow(1 - t, 0.5);
+                else if (pressureType == 2) pressure = (float)Math.pow(t, 0.5);
+                else pressure = 0.8f + 0.2f*(float)Math.sin(t*Math.PI*3);
+                
+                float w = penWidth * Math.max(0.1f, pressure);
+                float h = penHeight * Math.max(0.1f, pressure);
+                
+                g.translate(px, py);
+                g.rotate(penAngle);
+                g.fill(new Ellipse2D.Float(-w/2, -h/2, w, h));
+                g.setTransform(orig);
             }
         }
     }
