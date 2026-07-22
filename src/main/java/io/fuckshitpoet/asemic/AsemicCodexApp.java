@@ -3,26 +3,33 @@ package io.fuckshitpoet.asemic;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** A self-contained Java2D artifact press for invented writing systems. */
 public final class AsemicCodexApp {
-    private static final Color INK = new Color(37, 43, 43);
-    private static final Color WINE = new Color(104, 35, 35);
-    private static final Color GOLD = new Color(177, 133, 43);
+    private static final Color[] PALETTE = {
+        new Color(155, 20, 30),  // Deep red
+        new Color(20, 30, 180),  // Cobalt Blue
+        new Color(30, 120, 50),  // Forest Green
+        new Color(200, 130, 50), // Warm Ochre
+        new Color(200, 20, 100), // Magenta
+        new Color(50, 140, 150), // Teal
+        new Color(110, 30, 150)  // Purple
+    };
 
     private final JTextArea poem = new JTextArea("In the archive of sleep\nI found a language made of moth wings.\nEach word opened once\nand would not translate.");
     private final JTextField seed = new JTextField("seraph-1313");
-    private final JTextArea translation = new JTextArea();
+    private final JTextPane translation = new JTextPane();
     private final CodexPanel page = new CodexPanel();
     private Script script;
 
@@ -33,16 +40,22 @@ public final class AsemicCodexApp {
         frame.setLayout(new BorderLayout());
         frame.add(toolbar(), BorderLayout.NORTH);
 
-        poem.setFont(new Font(Font.SERIF, Font.PLAIN, 16));
+        poem.setFont(new Font(Font.SERIF, Font.PLAIN, 18));
         poem.setLineWrap(true); poem.setWrapStyleWord(true);
-        translation.setEditable(false); translation.setLineWrap(true); translation.setWrapStyleWord(true);
-        translation.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 15));
-        translation.setForeground(new Color(48, 69, 68));
+        poem.setBackground(new Color(24, 29, 30));
+        poem.setForeground(new Color(220, 220, 220));
+        poem.setCaretColor(Color.WHITE);
+
+        translation.setEditable(false);
+        translation.setFont(new Font(Font.MONOSPACED, Font.BOLD, 16));
+        translation.setBackground(new Color(24, 29, 30));
+
         JPanel editor = new JPanel(new GridLayout(2, 1, 0, 10));
         editor.setBackground(new Color(29, 35, 35));
         editor.setBorder(new EmptyBorder(14, 14, 14, 14));
         editor.add(labeled("YOUR POEM", new JScrollPane(poem)));
         editor.add(labeled("THE UNTRANSLATABLE READING", new JScrollPane(translation)));
+        
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, editor, page);
         split.setResizeWeight(.36); split.setDividerLocation(420);
         frame.add(split, BorderLayout.CENTER);
@@ -52,31 +65,61 @@ public final class AsemicCodexApp {
 
     private JComponent toolbar() {
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 9));
-        bar.setBackground(new Color(24, 29, 30));
+        bar.setBackground(new Color(18, 22, 23));
         JLabel title = new JLabel("ASEMIC CODEX  /  THE ARTIFACT PRESS");
         title.setForeground(new Color(222, 190, 115)); title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         JLabel seedLabel = new JLabel("SEED"); seedLabel.setForeground(Color.LIGHT_GRAY);
         seed.setColumns(15);
+        seed.setBackground(new Color(40, 45, 45)); seed.setForeground(Color.WHITE);
         JButton make = button("TRANSMUTE CODEX", e -> transmute());
         JButton export = button("EXPORT PNG", e -> export());
         bar.add(title); bar.add(Box.createHorizontalStrut(18)); bar.add(seedLabel); bar.add(seed); bar.add(make); bar.add(export);
         return bar;
     }
+
     private static JButton button(String text, java.awt.event.ActionListener action) {
         JButton b = new JButton(text); b.addActionListener(action); b.setFocusPainted(false); return b;
     }
+
     private static JComponent labeled(String label, JComponent body) {
         JPanel p = new JPanel(new BorderLayout(0, 6)); p.setOpaque(false);
         JLabel l = new JLabel(label); l.setForeground(new Color(222, 190, 115)); l.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
-        p.add(l, BorderLayout.NORTH); p.add(body, BorderLayout.CENTER); return p;
+        p.add(l, BorderLayout.NORTH);
+        
+        JScrollPane scroll = (JScrollPane) body;
+        scroll.setBorder(BorderFactory.createLineBorder(new Color(50, 60, 60)));
+        scroll.getViewport().setBackground(new Color(24, 29, 30));
+        p.add(body, BorderLayout.CENTER); return p;
     }
+
     private void transmute() {
         script = new Script(seed.getText().trim().isBlank() ? "unnamed" : seed.getText().trim());
         String source = poem.getText();
-        translation.setText(script.transliterate(source));
+        
+        translation.setText("");
+        StyledDocument doc = translation.getStyledDocument();
+        Matcher m = Pattern.compile("([a-zA-Z']+)|([^a-zA-Z']+)").matcher(source);
+        try {
+            while (m.find()) {
+                if (m.group(1) != null) {
+                    String word = m.group(1);
+                    WordGlyph wg = script.wordGlyph(word);
+                    Style style = translation.addStyle("color", null);
+                    StyleConstants.setForeground(style, wg.color);
+                    doc.insertString(doc.getLength(), word, style);
+                }
+                if (m.group(2) != null) {
+                    Style style = translation.addStyle("plain", null);
+                    StyleConstants.setForeground(style, new Color(130, 140, 140));
+                    doc.insertString(doc.getLength(), m.group(2), style);
+                }
+            }
+        } catch (Exception e) {}
+
         page.configure(script, source);
         page.repaint();
     }
+
     private void export() {
         JFileChooser chooser = new JFileChooser();
         chooser.setSelectedFile(new File("asemic-codex.png"));
@@ -87,80 +130,160 @@ public final class AsemicCodexApp {
         try { ImageIO.write(image, "png", file); }
         catch (IOException ex) { JOptionPane.showMessageDialog(page, "Could not write the codex: " + ex.getMessage(), "Export failed", JOptionPane.ERROR_MESSAGE); }
     }
+
     public static void main(String[] args) { SwingUtilities.invokeLater(AsemicCodexApp::new); }
 
     static final class Script {
-        private final long key;
-        private final Map<Character, Glyph> alphabet = new HashMap<>();
-        private final Map<String, String> ligatures = Map.of("th", "ϟ", "sh", "Ϟ", "ch", "Ϡ", "oo", "꙰", "ll", "ꜥ", "ea", "ꝏ");
+        final long key;
+        private final Map<String, WordGlyph> cache = new HashMap<>();
+        
         Script(String seed) {
             key = seed.hashCode() * 1103515245L + 12345;
-            Random r = new Random(key);
-            for (char c = 'a'; c <= 'z'; c++) alphabet.put(c, new Glyph(r.nextLong()));
         }
-        String transliterate(String text) {
-            StringBuilder out = new StringBuilder(); String lower = text.toLowerCase(Locale.ROOT);
-            for (int i = 0; i < lower.length(); i++) {
-                String pair = i + 1 < lower.length() ? lower.substring(i, i + 2) : "";
-                if (ligatures.containsKey(pair)) { out.append(ligatures.get(pair)); i++; }
-                else { char c = lower.charAt(i); out.append(c >= 'a' && c <= 'z' ? glyphChar(c) : punct(c)); }
-            }
-            return out.toString();
+        
+        WordGlyph wordGlyph(String word) {
+            String lower = word.toLowerCase(Locale.ROOT);
+            return cache.computeIfAbsent(lower, w -> new WordGlyph(w, key));
         }
-        private String glyphChar(char c) { return String.valueOf((char) (0xE000 + (c - 'a'))); }
-        private String punct(char c) { return switch (c) { case '.' -> " ✣"; case ',' -> " ᛫"; case '?' -> " 〄"; case '!' -> " ❦"; case '\n' -> "\n"; default -> " "; }; }
-        Glyph glyph(char c) { return alphabet.get(c); }
-        String grammar() { return "Grammar of the " + Long.toUnsignedString(key, 36).toUpperCase(Locale.ROOT) + " hand:  •  verbs end in a hooked ascender  •  breath marks reverse the next word  •  th / sh / ch bind as sacred ligatures"; }
+        
+        String grammar() { return "Codex rules: Colors distinguish root concepts. Calligraphic weight indicates stress."; }
     }
 
-    static final class Glyph {
+    static final class WordGlyph {
         final long seed;
-        Glyph(long seed) { this.seed = seed; }
-        void paint(Graphics2D g, float x, float baseline, float scale) {
-            Random r = new Random(seed); g.setStroke(new BasicStroke(2.2f * scale, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            float w = 20 * scale, h = 29 * scale;
-            for (int i = 0, n = 2 + r.nextInt(3); i < n; i++) {
-                float x1 = x + (r.nextFloat() * w), y1 = baseline - r.nextFloat() * h;
-                float cx = x + r.nextFloat() * w, cy = baseline - r.nextFloat() * h;
-                float x2 = x + r.nextFloat() * w, y2 = baseline - r.nextFloat() * h;
-                g.draw(new QuadCurve2D.Float(x1, y1, cx, cy, x2, y2));
+        final Color color;
+        
+        WordGlyph(String word, long scriptKey) {
+            this.seed = (word.hashCode() * 31L) ^ scriptKey;
+            this.color = PALETTE[Math.abs((int) (seed % PALETTE.length))];
+        }
+        
+        void paint(Graphics2D g, float x, float y, float w, float h) {
+            Random r = new Random(seed);
+            g.setColor(color);
+            int numStrokes = 2 + r.nextInt(4);
+            
+            for (int i = 0; i < numStrokes; i++) {
+                float x1 = x + r.nextFloat() * w; float y1 = y - r.nextFloat() * h;
+                float cx = x + r.nextFloat() * w; float cy = y - r.nextFloat() * h;
+                float x2 = x + r.nextFloat() * w; float y2 = y - r.nextFloat() * h;
+                float maxThick = w * 0.1f + r.nextFloat() * w * 0.15f;
+                drawBrush(g, x1, y1, cx, cy, x2, y2, maxThick);
             }
-            if (r.nextBoolean()) g.draw(new Ellipse2D.Float(x + r.nextFloat()*w*.6f, baseline-h*(.35f+r.nextFloat()*.4f), 4*scale, 4*scale));
-            if (r.nextBoolean()) g.fill(new Ellipse2D.Float(x + r.nextFloat()*w, baseline-h*(.7f+r.nextFloat()*.25f), 2.3f*scale, 2.3f*scale));
+            
+            if (r.nextBoolean()) {
+                float rDot = w * 0.1f + r.nextFloat() * w * 0.15f;
+                g.fill(new Ellipse2D.Float(x + r.nextFloat() * w, y - r.nextFloat() * h, rDot, rDot));
+            }
+        }
+        
+        private void drawBrush(Graphics2D g, float x1, float y1, float cx, float cy, float x2, float y2, float maxThick) {
+            int steps = 40;
+            for (int i = 0; i <= steps; i++) {
+                float t = i / (float) steps;
+                float inv = 1 - t;
+                float px = inv * inv * x1 + 2 * inv * t * cx + t * t * x2;
+                float py = inv * inv * y1 + 2 * inv * t * cy + t * t * y2;
+                float thick = maxThick * (0.05f + 0.95f * (float) Math.sin(t * Math.PI));
+                g.fill(new Ellipse2D.Float(px - thick/2, py - thick/2, thick, thick));
+            }
         }
     }
 
     final class CodexPanel extends JPanel {
         private Script current; private String source = "";
-        CodexPanel() { setBackground(new Color(33, 38, 38)); }
+        CodexPanel() { setBackground(new Color(29, 35, 35)); }
         void configure(Script script, String poem) { current = script; source = poem; }
         @Override protected void paintComponent(Graphics g) { super.paintComponent(g); if (current != null) draw((Graphics2D) g, getWidth(), getHeight()); }
         BufferedImage render(int w, int h) { BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB); Graphics2D g = img.createGraphics(); draw(g, w, h); g.dispose(); return img; }
+        
         private void draw(Graphics2D g, int w, int h) {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             Random r = new Random(current.key ^ 0x5c0d3L);
-            g.setColor(new Color(49, 52, 49)); g.fillRect(0, 0, w, h);
+            g.setColor(new Color(40, 45, 45)); g.fillRect(0, 0, w, h); // Desk background
+            
             int m = Math.max(22, w / 18); Rectangle pageRect = new Rectangle(m, m/2, w-2*m, h-m);
-            g.setColor(new Color(223, 207, 159)); g.fillRoundRect(pageRect.x, pageRect.y, pageRect.width, pageRect.height, 8, 8);
-            for (int i=0;i<2400;i++) { int a=3+r.nextInt(10); g.setColor(new Color(108, 76, 37, a)); int x=pageRect.x+r.nextInt(pageRect.width), y=pageRect.y+r.nextInt(pageRect.height); g.fillRect(x,y,1+r.nextInt(3),1+r.nextInt(3)); }
-            g.setColor(new Color(119, 72, 38)); g.setStroke(new BasicStroke(Math.max(1, w/500f))); g.drawRect(pageRect.x+10,pageRect.y+10,pageRect.width-20,pageRect.height-20);
-            float s = w / 900f; int left = pageRect.x + (int)(85*s), right = pageRect.x + pageRect.width - (int)(75*s), top = pageRect.y + (int)(160*s);
-            g.setColor(WINE); g.setFont(new Font(Font.SERIF, Font.BOLD, (int)(28*s))); g.drawString("THE  " + Long.toUnsignedString(current.key, 36).toUpperCase(Locale.ROOT) + "  FRAGMENT", left, pageRect.y+(int)(68*s));
-            g.setColor(GOLD); g.setStroke(new BasicStroke(2*s)); g.drawLine(left, pageRect.y+(int)(82*s), right, pageRect.y+(int)(82*s));
-            List<String> lines = Arrays.asList(source.split("\\R")); int lineNo=0;
-            for (String line : lines) { paintLine(g, line, left, top + lineNo*(int)(52*s), right, s, lineNo==0); lineNo++; }
-            // marginal botanical knotwork
-            g.setColor(new Color(104, 35, 35, 190)); g.setStroke(new BasicStroke(1.5f*s));
-            for(int y=top; y<pageRect.y+pageRect.height-90*s; y+=(int)(73*s)) { float x=pageRect.x+38*s; g.draw(new Arc2D.Float(x,y,28*s,28*s,0,260,Arc2D.OPEN)); g.fill(new Ellipse2D.Float(x+10*s,y+11*s,4*s,4*s)); }
-            g.setColor(INK); g.setFont(new Font(Font.SERIF, Font.ITALIC, (int)(13*s))); g.drawString(current.grammar(), left, pageRect.y+pageRect.height-(int)(38*s));
+            // Fine art paper background
+            g.setColor(new Color(248, 245, 238)); g.fillRoundRect(pageRect.x, pageRect.y, pageRect.width, pageRect.height, 4, 4);
+            
+            // Subtle paper grain
+            for (int i = 0; i < 4000; i++) {
+                int a = 2 + r.nextInt(6);
+                g.setColor(new Color(150, 140, 130, a));
+                int px = pageRect.x + r.nextInt(pageRect.width);
+                int py = pageRect.y + r.nextInt(pageRect.height);
+                g.fillRect(px, py, 1 + r.nextInt(2), 1 + r.nextInt(2));
+            }
+            
+            // Soft border frame
+            g.setColor(new Color(220, 210, 200)); 
+            g.setStroke(new BasicStroke(Math.max(1, w/500f))); 
+            g.drawRect(pageRect.x + 15, pageRect.y + 15, pageRect.width - 30, pageRect.height - 30);
+            
+            float s = w / 900f; 
+            int left = pageRect.x + (int)(85*s);
+            int right = pageRect.x + pageRect.width - (int)(75*s);
+            int top = pageRect.y + (int)(160*s);
+            
+            // Rubric / Header
+            g.setColor(new Color(180, 40, 50)); 
+            g.setFont(new Font(Font.SERIF, Font.BOLD, (int)(24*s))); 
+            g.drawString("THE  " + Long.toUnsignedString(current.key, 36).toUpperCase(Locale.ROOT) + "  FRAGMENT", left, pageRect.y + (int)(75*s));
+            
+            // Elegant thin divider
+            g.setColor(new Color(200, 180, 150)); 
+            g.setStroke(new BasicStroke(1.5f*s)); 
+            g.drawLine(left, pageRect.y + (int)(90*s), right, pageRect.y + (int)(90*s));
+            
+            // Lines
+            List<String> lines = Arrays.asList(source.split("\\R")); 
+            int lineNo = 0;
+            for (String line : lines) { 
+                paintLine(g, line, left, top + lineNo * (int)(65*s), right, s, lineNo == 0); 
+                lineNo++; 
+            }
+            
+            // Footer text
+            g.setColor(new Color(120, 110, 100)); 
+            g.setFont(new Font(Font.SERIF, Font.ITALIC, (int)(13*s))); 
+            g.drawString(current.grammar(), left, pageRect.y + pageRect.height - (int)(38*s));
         }
+        
         private void paintLine(Graphics2D g, String line, int left, int y, int right, float scale, boolean initial) {
-            float x=left; String lower=line.toLowerCase(Locale.ROOT); boolean first=true;
-            for (int i=0;i<lower.length() && x<right-25*scale;i++) {
-                char c=lower.charAt(i);
-                if (Character.isLetter(c)) { if (first && initial) { g.setColor(GOLD); g.fillRoundRect((int)(x-5*scale),(int)(y-38*scale),(int)(36*scale),(int)(45*scale),4,4); g.setColor(WINE); } else g.setColor(INK); current.glyph(c).paint(g,x,y,scale*(first&&initial?1.25f:1)); x+=26*scale; first=false; }
-                else if (c==' ') { x+=13*scale; first=false; }
-                else { g.setColor(WINE); g.fill(new Ellipse2D.Float(x,y-10*scale,4*scale,4*scale)); x+=12*scale; }
+            float x = left;
+            Matcher m = Pattern.compile("([a-zA-Z']+)|([^a-zA-Z']+)").matcher(line);
+            boolean firstWord = true;
+            
+            while (m.find()) {
+                if (m.group(1) != null) {
+                    String word = m.group(1);
+                    WordGlyph wg = current.wordGlyph(word);
+                    float gw = 28 * scale + Math.min(6, word.length()) * 5 * scale; // Width scales slightly with word length
+                    float gh = 45 * scale;
+                    
+                    if (x + gw > right) break; // Clip if too long
+                    
+                    if (firstWord && initial) {
+                        // Highlight first letter/word as illuminated initial
+                        g.setColor(new Color(230, 200, 130, 80)); // Soft gold halo
+                        g.fill(new Ellipse2D.Float(x - 10*scale, y - gh, gw + 20*scale, gh + 20*scale));
+                    }
+                    
+                    wg.paint(g, x, y, gw, gh);
+                    x += gw + 15 * scale;
+                    firstWord = false;
+                }
+                if (m.group(2) != null) {
+                    for (char c : m.group(2).toCharArray()) {
+                        if (c == ' ' || c == '\t') x += 12 * scale;
+                        else if (c == '\n') {} 
+                        else {
+                            g.setColor(new Color(180, 50, 50, 180));
+                            g.fill(new Ellipse2D.Float(x, y - 10 * scale, 5 * scale, 5 * scale));
+                            x += 10 * scale;
+                        }
+                    }
+                }
             }
         }
     }
