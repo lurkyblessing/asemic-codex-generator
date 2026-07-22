@@ -162,7 +162,7 @@ public final class AsemicCodexApp {
             Random r = new Random(seed);
             g.setColor(color);
             float penAngle = -(float)Math.PI/8f + r.nextFloat() * (float)Math.PI/4f;
-            int numComponents = 3 + r.nextInt(3);
+            int numComponents = 2 + r.nextInt(2);
             
             float cx = x + w/2f;
             float cy = y - h/2f;
@@ -183,7 +183,7 @@ public final class AsemicCodexApp {
                 drawCursiveBrush(g, startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, maxThick, penAngle, pressureType);
             }
             
-            int numDeco = 1 + r.nextInt(2);
+            int numDeco = r.nextBoolean() ? 1 : 0;
             for (int i = 0; i < numDeco; i++) {
                 float type = r.nextFloat();
                 float dx = x + w/2f + (r.nextFloat()-0.5f)*w*0.8f;

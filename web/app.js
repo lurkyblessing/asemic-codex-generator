@@ -56,7 +56,7 @@ function paintWord(word, x, y, w, h, key) {
     const r = rng(wordHash);
     
     const penAngle = -Math.PI/8 + r() * Math.PI/4;
-    const numComponents = 3 + (r() * 3 | 0);
+    const numComponents = 2 + (r() * 2 | 0);
     
     let cx = x + w/2;
     let cy = y - h/2;
@@ -72,7 +72,7 @@ function paintWord(word, x, y, w, h, key) {
         drawCursiveBrush(startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, maxThick, penAngle, pressureType);
     }
     
-    const numDeco = 1 + (r() * 2 | 0);
+    const numDeco = r() > 0.5 ? 1 : 0;
     for (let i=0; i<numDeco; i++) {
         let type = r();
         let dx = x + w/2 + (r()-0.5)*w*0.8;
